@@ -9,6 +9,8 @@ gets an entry, because "checked on this date" is the product.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-14
+
 ### Added
 
 - **AI-search visibility is measurable now, and the references say where.** Bing Webmaster Tools'
@@ -350,7 +352,8 @@ gets an entry, because "checked on this date" is the product.
   action SHAs in the workflow from going stale. This plugin recommends the practice; it now
   follows it.
 
-[Unreleased]: https://github.com/voyvodka/web-launcher/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/voyvodka/web-launcher/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/voyvodka/web-launcher/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/voyvodka/web-launcher/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/voyvodka/web-launcher/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/voyvodka/web-launcher/compare/v0.3.0...v0.3.1
