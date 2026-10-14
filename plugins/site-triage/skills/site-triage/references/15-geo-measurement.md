@@ -1,6 +1,6 @@
 # GEO measurement — scoring a site with GeoDaddy
 
-*Loaded by `web-launcher` SKILL whenever GEO work is proposed, and in any Mode B audit that touches
+*Loaded by `site-triage` SKILL whenever GEO work is proposed, and in any Mode B audit that touches
 AI-search visibility. This is the measurement half of `04-geo.md`, which is the advice half.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Versions, tool names and check IDs were read

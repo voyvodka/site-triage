@@ -1,6 +1,6 @@
 # Search Console — reading index status without guessing
 
-*Loaded by `web-launcher` SKILL whenever a live site's indexing is in question, or the user
+*Loaded by `site-triage` SKILL whenever a live site's indexing is in question, or the user
 mentions Search Console, "not indexed", "not appearing in Google", or a coverage reason.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Endpoint surface, field names, enum values and

@@ -1,6 +1,6 @@
 # Coming-soon / landing page scaffolding
 
-*Loaded by `web-launcher` SKILL when user wants a single-page coming-soon / landing HTML in Mode A.*
+*Loaded by `site-triage` SKILL when user wants a single-page coming-soon / landing HTML in Mode A.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.

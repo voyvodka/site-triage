@@ -1,13 +1,28 @@
 # Changelog
 
-All notable changes to the `web-launcher` plugin are documented here.
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
+All notable changes to the `site-triage` plugin (named `web-launcher` before 1.0.0) are
+documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Content in this plugin carries verification dates. A release that only re-verifies claims still
 gets an entry, because "checked on this date" is the product.
 
 ## [Unreleased]
+
+## [1.0.0] - 2026-10-14
+
+### Changed
+
+- **`web-launcher` is renamed to `site-triage`.** BREAKING for anyone with the old name in
+  `enabledPlugins`: install is now `/plugin install site-triage@voyvodka`, and the skill is
+  `/site-triage`. The catalog's `renames` entry maps the old name to the new one, so Claude Code
+  2.1.193+ rewrites user, project and local settings automatically; expect one
+  `plugin-cache-miss` and a single `/plugin install`. The repository moved to
+  `voyvodka/site-triage`; GitHub redirects the old URL.
+
+  Diagnosis became the primary job, and "launcher" only described the first day. Triage — working
+  out what is wrong and in what order to fix it — is what the skill's 🔴/🟡/🟢/⚪ rubric does, and
+  "site" covers SEO, GEO, deploy and supply chain together. No content changed.
 
 ## [0.4.0] - 2026-10-14
 
@@ -352,10 +367,11 @@ gets an entry, because "checked on this date" is the product.
   action SHAs in the workflow from going stale. This plugin recommends the practice; it now
   follows it.
 
-[Unreleased]: https://github.com/voyvodka/web-launcher/compare/v0.4.0...HEAD
-[0.4.0]: https://github.com/voyvodka/web-launcher/compare/v0.3.3...v0.4.0
-[0.3.3]: https://github.com/voyvodka/web-launcher/compare/v0.3.2...v0.3.3
-[0.3.2]: https://github.com/voyvodka/web-launcher/compare/v0.3.1...v0.3.2
-[0.3.1]: https://github.com/voyvodka/web-launcher/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/voyvodka/web-launcher/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/voyvodka/web-launcher/releases/tag/v0.2.0
+[Unreleased]: https://github.com/voyvodka/site-triage/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/voyvodka/site-triage/compare/v0.4.0...v1.0.0
+[0.4.0]: https://github.com/voyvodka/site-triage/compare/v0.3.3...v0.4.0
+[0.3.3]: https://github.com/voyvodka/site-triage/compare/v0.3.2...v0.3.3
+[0.3.2]: https://github.com/voyvodka/site-triage/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/voyvodka/site-triage/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/voyvodka/site-triage/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/voyvodka/site-triage/releases/tag/v0.2.0

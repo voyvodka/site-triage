@@ -20,7 +20,7 @@ jobs:
       # Deliberately unpinned: the gate asks "does this plugin load in the Claude Code
       # people actually have", so it has to track the current CLI rather than a frozen one.
       - name: Validate plugin manifest, skills and commands
-        run: npx --yes @anthropic-ai/claude-code@latest plugin validate plugins/web-launcher --strict
+        run: npx --yes @anthropic-ai/claude-code@latest plugin validate plugins/site-triage --strict
 
       # The sibling repo had its ignore rule pinned to a literal path; a directory rename
       # stopped it matching and private files landed in a commit. This asserts the rule
@@ -37,7 +37,7 @@ jobs:
 
       - name: Every capability-index row must point at a file that exists
         run: |
-          cd plugins/web-launcher/skills/web-launcher
+          cd plugins/site-triage/skills/site-triage
           grep -o 'references/[0-9][0-9]-[a-z-]*\.md' SKILL.md | sort -u > /tmp/rows
           ls references/*.md | xargs -n1 basename | sed 's|^|references/|' | sort > /tmp/files
           missing=$(comm -23 /tmp/rows /tmp/files)

@@ -1,6 +1,6 @@
 # Diagnostic checks — runnable, one verdict line each
 
-*Loaded by `web-launcher` SKILL for any Mode B audit, and whenever a Search Console reason class
+*Loaded by `site-triage` SKILL for any Mode B audit, and whenever a Search Console reason class
 needs to be traced to a cause. Read this before writing a gap report about a live site.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Every check below was executed against two live
