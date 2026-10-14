@@ -2,12 +2,13 @@
 
 *Loaded by `web-launcher` SKILL for repo hardening phase, or when user asks about dep-bot / security / audit / SBOM / license compliance.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 >
-> **Partially re-verified 2026-09-25**: every version number and every pinned SHA in this file was
-> re-resolved on that date, and the pnpm-12 re-check in §13.3 was carried out. Nothing else was
-> re-checked — the prose, pricing and policy claims still carry their 2026-08-14 stamps.
+> **Not re-read on 2026-10-14**, so still on their 2026-08-14 stamps: Renovate preset names,
+> audit/outdated CLI flags, gitleaks CLI modes and the gitleaks-action README notes, the GitHub
+> SBOM endpoint and SPDX status, socket.dev and Snyk pricing,
+> and rulesets availability. Every version number and SHA was re-resolved on 2026-10-14.
 
 Static/marketing sites still ship third-party code (framework, build tools, wrangler, satori, resvg, font packages). Dependencies rot: CVEs appear, breaking changes land, transitive deps get yanked. Automate this — manual review doesn't scale.
 
@@ -20,7 +21,7 @@ Static/marketing sites still ship third-party code (framework, build tools, wran
   means deleting its config *and* disabling it in repo settings or uninstalling the app — a deleted
   `renovate.json` alone leaves the app running on defaults.
 - `.github/workflows/*audit*.yml` — CI audit gate
-- GitHub repo Settings → Security → Advanced Security toggles (user confirms in UI)
+- GitHub repo Settings → Security and quality → Advanced Security toggles (user confirms in UI)
 - A ruleset (or classic branch protection) on `main` — PR + status checks required
 - Lockfile committed (pnpm-lock.yaml / yarn.lock / package-lock.json) and used with `--frozen-lockfile` in CI
 - Pre-commit hook for secret scanning
@@ -35,7 +36,7 @@ Static/marketing sites still ship third-party code (framework, build tools, wran
 ```yaml
 version: 2
 updates:
-  # npm / pnpm / yarn (auto-detected from lockfile)
+  # npm / pnpm / yarn (auto-detected from lockfile) — check the supported versions note below
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -69,7 +70,7 @@ updates:
     schedule: { interval: "monthly" }
 ```
 
-> Schema still `version: 2`; every key above is current (verified 2026-08-14 against the
+> Schema still `version: 2`; every key above is current (verified 2026-10-14 against the
 > [Dependabot options reference](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference)).
 > Notes from that check:
 > - `open-pull-requests-limit` defaults to `5` for version updates — the line above is explicit, not
@@ -77,10 +78,24 @@ updates:
 > - `directory` is still valid; `directories` (a list, glob-capable) is the newer plural form.
 > - `schedule.interval` accepts `daily`, `weekly`, `monthly`, `quarterly`, `semiannually`, `yearly`,
 >   `cron`. `day` / `time` / `timezone` narrow the non-cron intervals.
-> - `cooldown` is a real option, not invented for this doc: `default-days`, `semver-major-days`,
->   `semver-minor-days`, `semver-patch-days`, plus `include` / `exclude`. ⚠️ Availability per
->   ecosystem is not stated on that page — if PRs still arrive same-day, the ecosystem may not
->   honour it yet.
+>
+> `cooldown`, re-read 2026-10-14 on the same page:
+> - **Dependabot applies a 3-day cooldown to version updates even when `cooldown` is not set.**
+>   Security updates are never delayed by it. `default-days` overrides the 3.
+> - The page now has a per-ecosystem table. `default-days` works for every listed ecosystem; the
+>   `semver-*-days` keys only where marked — **npm and Yarn** (the `npm` ecosystem), Bun, pip,
+>   Cargo, Composer, Bundler and other semver ecosystems yes; **GitHub Actions, Docker, Docker
+>   Compose, pre-commit**, Helm, Terraform, Git submodules and a few others **`default-days`
+>   only**. So the two blocks above without a `cooldown` get the 3-day default, and a
+>   `semver-major-days` on the `github-actions` block would do nothing.
+> - `include` / `exclude` take up to 150 entries each, wildcards allowed; `exclude` wins.
+>
+> **Supported package-manager versions** (verified 2026-10-14 —
+> [supported ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)):
+> npm v7–v11, **pnpm v7–v10**. ⚠️ The pnpm 12 this file pins in §13.3 and npm 12 are both outside
+> the documented range. Nothing on the page says what Dependabot does with a newer lockfile; if
+> its PRs fail or rewrite `pnpm-lock.yaml` oddly, that gap is the first suspect, and Renovate is the
+> alternative to evaluate.
 
 ### Option B: Renovate (more configurable, supports automerge)
 
@@ -120,23 +135,27 @@ Install Renovate GitHub App, then `renovate.json`:
 
 ## 13.2 GitHub repo-level security toggles (user action)
 
-Enable in `Settings → Security → Advanced Security` (the menu path moved — an older guide saying
-`Settings → Code security` is describing the same toggles under the previous label; verified
-2026-08-14 against the
+Enable in `Settings → Security and quality → Advanced Security` (the sidebar section is now
+labelled "Security and quality"; an older guide saying `Settings → Security` or
+`Settings → Code security` describes the same toggles under a previous label; verified
+2026-10-14 against the
 [code scanning default setup docs](https://docs.github.com/en/code-security/code-scanning/enabling-code-scanning/configuring-default-setup-for-code-scanning)):
 
 - ✅ **Dependabot alerts** — CVE notifications
 - ✅ **Dependabot security updates** — auto-PR on alert
-- ✅ **Secret scanning** — runs automatically and free on **public** repos. Private/internal repos
-  need a paid GitHub Secret Protection license (verified 2026-08-14 —
+- ✅ **Secret scanning** — runs automatically and free on **public** repos. Organization-owned
+  private/internal repos need GitHub Secret Protection on Team or Enterprise Cloud. **A private repo
+  on a personal account cannot get it at all** — user-owned repos are covered only on Enterprise
+  Cloud with Enterprise Managed Users, or on Enterprise Server (verified 2026-10-14 —
   [about secret scanning](https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning))
 - ✅ **Secret scanning push protection** — blocks the push, not the commit, when a supported secret
-  is detected. Two distinct things share the name: *push protection for users* is *on by default*
+  is detected — and not only `git push`: it also covers "Commits made in the GitHub UI", "File
+  uploads to a repository on GitHub" and "Requests to the REST API". Two distinct things share the name: *push protection for users* is *on by default*
   and stops any user pushing a secret to a **public** repo; *push protection for the repository* is
-  **off by default** and must be switched on by an admin/owner (verified 2026-08-14 —
+  **off by default** and must be switched on by an admin/owner (verified 2026-10-14 —
   [about push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/about-push-protection))
 - ✅ **Code scanning** (CodeQL default setup) — free where the repo "is publicly visible, or GitHub
-  Code Security is enabled"; private repos need the paid license (verified 2026-08-14, same code
+  Code Security is enabled"; private repos need the paid license (verified 2026-10-14, same code
   scanning page). Optional; adds CI time
 - ✅ **Private vulnerability reporting** — lets researchers file via `security/advisories`
 
@@ -167,10 +186,10 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413  # v6.1.0
         with: { version: 12 }
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 24, cache: "pnpm" }
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --audit-level=moderate
@@ -179,7 +198,7 @@ jobs:
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
         env:
@@ -188,42 +207,49 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 ```
 
-Every version in that workflow was checked on 2026-09-25 via
-`gh api repos/<owner>/<repo>/releases/latest`. The two third-party actions are SHA-pinned per
-§13.7; the first-party `actions/*` stay on tags. What changed since the previous major-version
-generation of this example:
+Every version in that workflow was checked on 2026-10-14 via
+`gh api repos/<owner>/<repo>/releases/latest`, and every action — first-party included — is
+SHA-pinned per §13.7. What changed since the previous major-version generation of this example:
 
 | Action | Was | Now | Latest release |
 |---|---|---|---|
 | `actions/checkout` | v4 | **v7** | `v7.0.1`, 2026-07-20 |
-| `actions/setup-node` | v4 | **v7** | `v7.0.0`, 2026-07-14 |
-| `pnpm/action-setup` | v4 | **v6** | `v6.1.0`, 2026-09-05 — adds pnpm 12 support. ⚠️ The floating `v6` tag still points at `v6.0.10`, so pin the `v6.1.0` SHA, not `@v6`, for pnpm 12 |
+| `actions/setup-node` | v4 | **v7** | `v7.1.0`, 2026-10-08 |
+| `pnpm/action-setup` | v4 | **v6** | `v6.1.0`, 2026-09-05 — adds pnpm 12 support. ⚠️ The floating `v6` tag still points at `v6.0.10` (`0977fd99…`, re-checked 2026-10-14), so pin the `v6.1.0` SHA, not `@v6`, for pnpm 12 |
 | `gitleaks/gitleaks-action` | v2 | **v3** | `v3.0.0`, 2026-05-30 |
-| `github/codeql-action` | v3 | **v4** | tag `v4.38.2` (2026-09-24) |
+| `github/codeql-action` | v3 | **v4** | tag `v4.38.3` (2026-10-08) |
 
-Three things that bite when copying an older version of this file:
+Four things that bite when copying an older version of this file:
 
 - **`node-version: 20` is end-of-life.** Node 20 (Iron) went EOL 2026-04-30; Node 22 (Jod) is in
-  maintenance since 2025-10-21 and ends 2027-04-30; **Node 24 (Krypton) is the active LTS** until
-  it enters maintenance 2026-10-20 (verified 2026-08-14 against the
-  [Node release schedule](https://github.com/nodejs/Release/blob/main/schedule.json)). Use 24 unless
-  something pins you lower.
+  maintenance until 2027-04-30. **Node 24 (Krypton)** is active LTS until 2026-10-20, then in
+  maintenance until 2028-04-30; **Node 26** becomes active LTS on 2026-10-28 (verified 2026-10-14
+  against the [Node release schedule](https://github.com/nodejs/Release/blob/main/schedule.json)).
+  Either 24 or 26 is a correct `node-version:` from late October 2026 on, and there is no rush to
+  move an existing 24 pin — read `schedule.json` rather than trusting the number in the example.
+- **This is a different "Node 20" from the runner one.** GitHub-hosted runners stopped offering
+  Node 20 *to run JavaScript actions* on 2026-09-23: actions declaring `runs.using: node20` now run
+  on Node 24 and the `ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION` opt-out is gone (verified
+  2026-10-14 — [GitHub changelog](https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/)).
+  An old pinned action version may misbehave on that; `node-version:` above is the separate question of
+  which Node your *project* builds with.
 - **`pnpm/action-setup` needs `version:`** unless `package.json` declares `packageManager` (or
   `devEngines.packageManager`). The old example omitted it and silently depended on that field
-  existing. **pnpm 12 is now `latest`** (`12.6.0`, 2026-09-22; `latest-11` is `11.27.1`,
-  `latest-10` is `10.34.5`), so the example pins `version: 12`. Re-checked on 2026-09-25, the
-  action's README now reads *"This action supports pnpm v12 and earlier"* and says it can stay
-  paired with `actions/setup-node` for v11 and v12 — it is no longer the v10-and-older path. The
-  alternative, [`pnpm/setup`](https://github.com/pnpm/setup), is at **`v3.0.0`** (2026-09-20, a
-  breaking major over the `v2` this file used to show). It installs the standalone pnpm binary
-  plus a runtime in one step, replacing `actions/setup-node`, and supports **pnpm v11 and newer
-  only**; its README adds that pnpm v11 publishes no Intel macOS binary, so use v12 there:
+  existing. **pnpm 12 is `latest`** (`12.11.2`; `latest-11` is `11.28.2`, `latest-10` is
+  `10.34.6`; `npm view pnpm dist-tags`, 2026-10-14), so the example pins `version: 12`. The
+  action's README reads *"This action supports pnpm v12 and earlier"* and says it can stay paired
+  with `actions/setup-node` for v11 and v12 (re-read 2026-10-14). Remember Dependabot documents
+  pnpm only up to v10 (§13.1). The alternative, [`pnpm/setup`](https://github.com/pnpm/setup), is
+  at **`v3.1.1`** (2026-10-10). It installs the standalone pnpm binary plus a runtime in one step,
+  replacing `actions/setup-node`, and supports **pnpm v11 and newer only**; its README adds that
+  pnpm v11 publishes no Intel macOS binary, so use v12 there:
   ```yaml
-  - uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024  # v3.0.0
+  - uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4  # v3.1.1
     with: { version: 12, runtime: node@24, cache: true }
   ```
   `v3` also runs `pnpm install` by default when a `package.json` is present — set
-  `install: false` for a job that only audits. Pick one of the two actions per job.
+  `install: false` for a job that only audits (both inputs present in the `v3.1.1` `action.yml`).
+  Pick one of the two actions per job.
 - **gitleaks-action v3 wants `GITLEAKS_LICENSE` for organization repos**, not personal accounts —
   that is a v2-era condition that still holds, and a missing license is the usual reason the job
   fails on an org repo. v3 is otherwise a drop-in: same inputs and outputs, only the Actions runtime
@@ -274,7 +300,7 @@ repos:
 ```
 
 > `rev: v8.18.0` was two years of releases behind — gitleaks latest is `v8.30.1`, published
-> 2026-03-21 (verified 2026-08-14 via `gh api repos/gitleaks/gitleaks/releases/latest`). A stale
+> 2026-03-21 (verified 2026-10-14 via `gh api repos/gitleaks/gitleaks/releases/latest`). A stale
 > `rev` here is not cosmetic: the rule set that detects new provider token formats ships with the
 > binary. Pin a real tag and let Dependabot's `pre-commit` ecosystem or `pre-commit autoupdate`
 > move it.
@@ -283,7 +309,7 @@ repos:
 1. **Rotate the credential** at the provider (revoke, regenerate) FIRST
 2. Then scrub history: `git filter-repo --path <file> --invert-paths` (or BFG Repo Cleaner).
    `git-filter-repo` is a separate install (`brew install git-filter-repo`), not a built-in git
-   subcommand; latest release `v2.47.0`, 2024-12-04 — quiet, not abandoned (verified 2026-08-14)
+   subcommand; latest release `v2.47.0`, 2024-12-04 — quiet, not abandoned (verified 2026-10-14)
 3. `git push --force-with-lease` with team coordination
 4. Invalidate any deploys that used the old secret
 
@@ -300,7 +326,7 @@ npx license-checker-rseidelsohn --failOn 'GPL-3.0;AGPL-3.0;SSPL-1.0'
 
 > Do not use `license-checker`: latest is `25.0.1`, published 2019-01-10 — unmaintained for over
 > seven years. The fork `license-checker-rseidelsohn` is at `5.0.1` (2026-05-27) and is the drop-in
-> replacement. Both verified 2026-08-14 against the npm registry. Prefer the package manager's own
+> replacement. Both verified 2026-10-14 against the npm registry. Prefer the package manager's own
 > command where one exists — that is the dependency you already have.
 
 Add as CI step if project has license policy.
@@ -318,9 +344,10 @@ syft dir:. -o spdx-json > sbom.spdx.json
 ```
 
 > **`npx @anchore/syft` does not work — there is no such npm package** (registry returns 404,
-> verified 2026-08-14). `@cyclonedx/cyclonedx-npm` is real and current: `6.0.1`, published
+> verified 2026-10-14). `@cyclonedx/cyclonedx-npm` is real and current: `6.0.1`, published
 > 2026-08-11 (same check). If only one SBOM format is needed, CycloneDX is the one with no
-> extra install step. Syft latest is `v1.52.0`, 2026-09-17 (re-checked 2026-09-25).
+> extra install step. Syft latest is `v1.54.1`, 2026-10-06 (re-checked 2026-10-14; `6.0.1` also
+> still current on that date).
 
 Third option, zero install, if the repo is on GitHub with the dependency graph enabled — GitHub
 generates an SPDX SBOM itself:
@@ -333,7 +360,7 @@ dependency graph knows, not what a build actually produced, so it is the weaker 
 three for attestation purposes.
 
 Format status, verified 2026-08-14 via each specification's own releases:
-- **CycloneDX** specification `1.7.2`, 2026-09-17 (re-checked 2026-09-25) — still actively
+- **CycloneDX** specification `1.7.2`, 2026-09-17 (re-checked 2026-10-14) — still actively
   versioned. Check which spec version your generator emits; a tool can be current while
   defaulting to an older spec.
 - **SPDX** specification `3.0.1`, 2024-12-17. ⚠️ Most tooling still emits SPDX **2.3** by default
@@ -347,28 +374,106 @@ Attach to GitHub Release artifacts.
 
 - **npm provenance** — `npm publish --provenance` attests the package was built from the claimed
   source repo at the claimed commit (Sigstore-backed, free). Still the documented flag, with two
-  conditions worth knowing (verified 2026-08-14 —
-  [generating provenance statements](https://docs.npmjs.com/generating-provenance-statements)):
+  conditions worth knowing (verified 2026-10-14 —
+  [generating provenance statements](https://docs.npmjs.com/generating-provenance-statements), last edited 2026-05-04):
   the build must run on a cloud-hosted runner of a supported provider — **GitHub Actions or GitLab
-  CI/CD, those two only** — and `package.json` must point at a public `repository`. If you publish
-  via **trusted publishing**, provenance is generated automatically and the `--provenance` flag is
-  not needed; that is now the better path, since it also removes the long-lived npm token from CI.
-  Consumers verify with `npm audit signatures`.
+  CI/CD, those two only** — and `package.json` must point at a public `repository`. **Trusted
+  publishing** from those same two providers generates provenance automatically: "When you publish
+  using trusted publishing from GitHub Actions or GitLab CI/CD, npm automatically generates and
+  publishes provenance attestations", no `--provenance` flag needed. Not from CircleCI, and not
+  from a private repository even when the package is public (verified 2026-10-14 —
+  [trusted publishers](https://docs.npmjs.com/trusted-publishers), last edited 2026-10-06).
+  Trusted publishing is the better path either way, since it removes the long-lived npm token
+  from CI. Consumers verify with `npm audit signatures`.
+- **npm trusted publishing** (verified 2026-10-14 —
+  [trusted publishers](https://docs.npmjs.com/trusted-publishers), page last edited 2026-10-06):
+  supported on GitHub Actions (GitHub-hosted runners), GitLab CI/CD (GitLab.com shared runners) and,
+  since 2026-04-06, CircleCI cloud
+  ([changelog](https://github.blog/changelog/2026-04-06-npm-trusted-publishing-now-supports-circleci/));
+  self-hosted runners are not. Two changes from 2026-10-02
+  ([changelog](https://github.blog/changelog/2026-10-02-unvalidated-npm-trusted-publishing-configurations-now-expire/)):
+  a new trusted-publisher configuration **expires unless its first publish succeeds within 48
+  hours** (the docs say "2 days") — create it right before the release, not weeks ahead; and npm
+  now **rejects tokens from `issue_comment` workflows**, alongside the existing
+  `pull_request_target` restriction — publish from `push`, `release` or `workflow_dispatch`. A
+  CircleCI publish carries no provenance: "Provenance generation is not currently supported for
+  CircleCI" (same page).
 - **Lockfile discipline** — always commit, always `--frozen-lockfile` / `--immutable` in CI (fails if lockfile drifts)
-- **Pinned third-party Actions** — use commit SHA, not floating tags:
+- **Release-age gates and install scripts** — every major package manager can now refuse versions
+  younger than a set age, which is the cheapest defence against a compromised release that gets
+  pulled within hours. The units differ, and that is where copied configs go wrong (all verified
+  2026-10-14 against each tool's own docs or source):
+
+  | Manager | Setting | Unit | Default |
+  |---|---|---|---|
+  | npm | `min-release-age` (`.npmrc`) | **days** | off (`null`) — [npm config](https://docs.npmjs.com/cli/v12/using-npm/config) |
+  | pnpm | `minimumReleaseAge` (`pnpm-workspace.yaml`) | **minutes** | **`1440` (1 day) since v11**, `0` before; added in 10.16.0 — [pnpm settings](https://pnpm.io/settings/dependency-resolution#minimumreleaseage) |
+  | Bun | `install.minimumReleaseAge` (`bunfig.toml`) | **seconds** | off (`null`) — [bunfig](https://bun.com/docs/runtime/bunfig) |
+  | Yarn (Berry) | `npmMinimalAgeGate` (`.yarnrc.yml`) | duration string (`1d`, `3h`, `1w`; bare number = minutes) | **`1d` since 4.15.0** (2026-05-19), `0m` in 4.11.0–4.14.1; added in 4.10.0 as a plain minute count, default `0` — `packages/plugin-npm/sources/index.ts` at each `@yarnpkg/cli/<version>` tag, [yarnrc](https://yarnpkg.com/configuration/yarnrc) |
+
+  A week is `min-release-age=7` on npm, `minimumReleaseAge: 10080` on pnpm,
+  `minimumReleaseAge = 604800` on Bun and `npmMinimalAgeGate: "1w"` on Yarn. Dependabot's
+  `cooldown` (§13.1) is the same idea applied to the PRs, not the install. pnpm also has
+  `trustPolicy: no-downgrade` (default off, since 10.21.0): install fails if a version carries
+  weaker trust evidence — say, no provenance where earlier releases were trusted-published — than
+  versions published before it.
+
+  Install scripts: **npm 12 blocks dependency lifecycle scripts by default** unless the root
+  `package.json`'s `allowScripts` policy allows them (`npm install-scripts approve`, then
+  `npm rebuild`), and `allow-git` / `allow-remote` now default to `none`, so git and tarball-URL
+  dependencies need an explicit opt-in (verified 2026-10-14 —
+  [npm v12.0.0 release notes](https://github.com/npm/cli/releases/tag/v12.0.0), 2026-07-08; npm
+  `latest` is `12.2.0`). pnpm has blocked dependency `postinstall` scripts since v10, with
+  `allowBuilds` as the allowlist ([pnpm supply-chain security](https://pnpm.io/supply-chain-security)).
+  An upgrade to npm 12 that "breaks" a native dependency is usually this, not a bug.
+- **Lock or SHA-pin every Action — first-party included.** GitHub's secure-use reference now puts a
+  **workflow dependency lockfile** first: it "supersedes SHA pinning for repositories that adopt
+  it". Without one, pin every action to a full-length commit SHA, and pin to a tag "only if you
+  trust the creator", with the caveat that "a tag can be moved or deleted" — there is no carve-out
+  for GitHub's own actions. The repository setting **Require actions to be pinned to a full-length
+  commit SHA** explicitly "includes … actions authored by GitHub" (all verified 2026-10-14 —
+  [secure use reference](https://docs.github.com/en/actions/reference/security/secure-use),
+  [repository Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)).
   ```yaml
-  # Good — SHA, with the tag it resolved to in a trailing comment
-  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
-  # Risky
-  uses: some-user/some-action@v1
+  steps:
+    # Good — SHA, with the tag it resolved to in a trailing comment
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+    # Risky — any owner, GitHub included
+    - uses: actions/checkout@v7
+    - uses: some-user/some-action@v1
   ```
-  First-party (actions/*, github/*) can stay on tags; third-party pin SHA.
+  One trade-off the same page states: Dependabot "will not create alerts for actions pinned to SHA
+  values". It still opens version-update PRs for them — the `github-actions` updater supports the
+  `actions/checkout@<commit>` form, and a commit "not associated with any tag" is moved to the
+  latest commit rather than the latest release (verified 2026-10-14 —
+  [supported ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories#github-actions)) —
+  so keep the `github-actions` ecosystem in `dependabot.yml`.
+
+  **Workflow lockfile — public preview**, "subject to change": `.github/workflows/actions.lock`,
+  generated by the `gh actions-lock` CLI extension and never hand-edited. It records the commit
+  *and* the numeric owner/repo IDs of every action and reusable workflow, and extends to transitive
+  dependencies "**except** for dependencies of reusable workflow calls" — those are covered by the
+  lockfile of the repository that defines the reusable workflow. Workflows are onboarded "one at a
+  time or all at once"; the lockfile's `workflows:` section lists which ones are in, and once a
+  workflow is onboarded every action it uses must be in the lock. Locked dependencies satisfy the
+  SHA-pinning setting without SHAs in the workflow file, but "Dependencies that aren't in the
+  lockfile still need a full-length SHA" (verified 2026-10-14 —
+  [workflow dependency lockfiles](https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles),
+  [repository Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)).
+  Dependabot regenerates the lock entry in the same PR when it bumps an action in an onboarded
+  workflow, but "will **not** onboard a workflow for you" (verified 2026-10-14 —
+  [lock workflow dependencies](https://docs.github.com/en/actions/how-tos/secure-your-work/lock-workflow-dependencies)).
+  Because it is a preview, SHA pins remain this file's default. Workflows onboarded to an
+  `actions.lock` are covered and should not be flagged for tag references; every other workflow in
+  the same repo still is (§13.11 check 4 makes that split).
 
   > The SHA previously given here (`b4ffde65…`) still resolves — but to a commit from **2023-10-17**,
   > i.e. the `actions/checkout` v4 line, four majors behind. That is the failure mode of pinning
   > without a bot: it keeps working and quietly stops being maintained. The SHAs above and below
-  > were re-resolved 2026-09-25; re-resolve rather than copying them, and let Dependabot's
-  > `github-actions` ecosystem move the pins (it rewrites SHAs and updates the trailing comment).
+  > were re-resolved 2026-10-14; re-resolve rather than copying them, and let Dependabot's
+  > `github-actions` ecosystem move the pins. It rewrites the SHA, and "updates the version
+  > documentation of GitHub Actions when the comment is on the same line", e.g.
+  > `actions/checkout@<commit> #<tag or link>` (verified 2026-10-14 — same supported-ecosystems page).
   >
   > **Dereference annotated tags or the pin is wrong.** `gh api repos/<owner>/<repo>/git/ref/tags/<tag>`
   > returns `.object.type == "tag"` for an annotated tag, and its `.object.sha` is the *tag object*,
@@ -379,14 +484,18 @@ Attach to GitHub Release artifacts.
   > gh api repos/<owner>/<repo>/commits/<tag> --jq .sha    # follows tag -> commit for both kinds
   > ```
   >
-  > | Action | Tag | Commit SHA on 2026-09-25 |
+  > And do not take the tag from `releases/latest` blindly: for `github/codeql-action` it returns a
+  > `codeql-bundle-v…` release, not the `v4.x` action tag — list releases and pick the `v4` line.
+  >
+  > | Action | Tag | Commit SHA on 2026-10-14 |
   > |---|---|---|
-  > | `actions/checkout` | v7 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
-  > | `actions/setup-node` | v7 | `820762786026740c76f36085b0efc47a31fe5020` |
-  > | `github/codeql-action` | v4.38.2 | `2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2` |
+  > | `actions/checkout` | v7.0.1 (= `v7`) | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+  > | `actions/setup-node` | v7.1.0 (= `v7`) | `949feb2413d6458794dcd2491c4babbbce0c15c1` |
+  > | `github/codeql-action` | v4.38.3 (= `v4`) | `24c54180a607b1449ed407dd24f251e4e9147c8d` |
   > | `pnpm/action-setup` | v6.1.0 | `ea17c68df8912ef543352723c149a84f56e3d413` |
-  > | `pnpm/setup` | v3 | `fbda4c85fc2e1e08721cd8763afea8f48d60f024` |
-  > | `gitleaks/gitleaks-action` | v3 | `e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e` |
+  > | `pnpm/setup` | v3.1.1 (= `v3`) | `a0881977cd8ea73b1ed212236c99ca10dcc80cf4` |
+  > | `gitleaks/gitleaks-action` | v3.0.0 (= `v3`) | `e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e` |
+  > | `cloudflare/wrangler-action` | v4.1.3 (= `v4`) | `953926a2e2182532811c01a25e53647d93bf07c0` |
 
 - **socket.dev** — GitHub App reviews dep-change PRs for supply-chain red flags (install scripts,
   shell exec, network calls, typosquat). Zero config, high signal. ⚠️ "Free for public repos" was
@@ -452,29 +561,30 @@ to a user as a commitment.
 | `pnpm/yarn/npm audit` | ✅ | Node CVEs | CLI + CI | current |
 | socket.dev | ⚠️ metered: 1,000 scans/mo, 3 members, unlimited repos; OSS can request a free Team account | Supply chain / malicious detection | GitHub App | current |
 | Snyk | ⚠️ per-product monthly test counts, not one pool: **200** Open Source (SCA), **100** Code (SAST), **100** Container, **300** IaC | CVE + license + IaC | GitHub App + CLI | current |
-| CodeQL | ✅ public repos; private needs paid Code Security | Static analysis | GitHub Actions | `codeql-action` `v4.38.2`, 2026-09-24 |
+| CodeQL | ✅ public repos; private needs paid Code Security | Static analysis | GitHub Actions | `codeql-action` `v4.38.3`, 2026-10-08 |
 | Gitleaks | ✅ CLI; ⚠️ the **Action** needs `GITLEAKS_LICENSE` on org-owned repos | Secret scan | Pre-commit + CI | CLI `v8.30.1`, 2026-03-21 |
-| TruffleHog | ✅ open source | Secret scan (deeper entropy) | Pre-commit + CI | `v3.97.9`, 2026-09-24 |
+| TruffleHog | ✅ open source | Secret scan (deeper entropy) | Pre-commit + CI | `v3.99.2`, 2026-10-08 |
 | license-checker-rseidelsohn | ✅ | License audit | CLI + CI | `5.0.1`, 2026-05-27 |
-| CycloneDX / Syft | ✅ | SBOM | CLI + release | `6.0.1` (2026-08-11) / `v1.52.0` (2026-09-17) |
+| CycloneDX / Syft | ✅ | SBOM | CLI + release | `6.0.1` (2026-08-11) / `v1.54.1` (2026-10-06) |
 
 The old table said Snyk gave "200 tests/mo" flat — that number is only the Open Source product's
 allowance ([snyk.io/plans](https://snyk.io/plans/), read 2026-08-14). Release dates in the last
 column come from `gh api repos/<owner>/<repo>/releases/latest` and the npm registry, re-run
-2026-09-25; all four scanners are actively released, none are abandoned.
+2026-10-14; all four scanners are actively released, none are abandoned.
 
 ## 13.10 Day-1 baseline for any public repo
 
 Ship these together on repo creation or first audit pass. ~30 min total, then autopilot:
 
 1. `.github/dependabot.yml` — weekly grouped npm + actions + docker updates, with a `cooldown`
-2. GitHub Settings → Security → Advanced Security: alerts + security updates + secret scanning +
-   push protection (remember repository-level push protection is off by default) all ✓
+2. GitHub Settings → Security and quality → Advanced Security: alerts + security updates + secret
+   scanning + push protection (remember repository-level push protection is off by default) all ✓
 3. `.github/workflows/audit.yml` — audit + outdated + Gitleaks on PR + weekly cron
 4. Pre-commit hook: Gitleaks staged scan
 5. Ruleset (or classic branch protection) on main: PR + status checks required
 6. Lockfile committed; CI uses `--frozen-lockfile`
-7. Pinned SHA on any third-party GitHub Action
+7. Every GitHub Action pinned to a full commit SHA — first-party included — or covered by a
+   workflow lockfile (`.github/workflows/actions.lock`, public preview); see §13.7
 8. (Optional) socket.dev GitHub App installed
 
 ## 13.11 Mode B rapid checklist
@@ -489,9 +599,27 @@ grep -rlE "(audit|snyk|gitleaks|trufflehog)" .github/workflows/ 2>/dev/null || e
 # 3. Lockfile committed?
 ls pnpm-lock.yaml yarn.lock package-lock.json 2>/dev/null
 
-# 4. Third-party actions NOT SHA-pinned? (lists offenders; silence = all pinned)
-grep -rhoE "uses: [^ ]+@v[0-9][^ ]*" .github/workflows/ 2>/dev/null \
-  | grep -vE "uses: (actions|github)/" | sort -u
+# 4. Actions not SHA-pinned — one line per offender, then a one-line verdict. First-party actions/*
+# and github/* count too. Workflows listed under `workflows:` in actions.lock are covered by the
+# lockfile and skipped; every other workflow file still needs full-length SHAs (§13.7).
+lock=.github/workflows/actions.lock
+onboarded=$([ -f "$lock" ] && tr -d '\r' < "$lock" | sed -n '/^workflows:/,/^dependencies:/p' \
+  | grep -oE '\.github/workflows/[A-Za-z0-9._/-]+\.ya?ml')
+scanned=0; locked=0; bad=""
+for f in $(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) 2>/dev/null | sort); do
+  if printf '%s\n' "$onboarded" | grep -qxF "$f"; then locked=$((locked+1)); continue; fi
+  scanned=$((scanned+1))
+  hits=$(tr -d '\r' < "$f" | grep -E "^[[:space:]-]*\{?[[:space:]]*uses:" \
+    | grep -oE "uses:[[:space:]]+['\"]?[^[:space:]'\"#},]+" | sed -E "s/uses:[[:space:]]+['\"]?/uses: /" \
+    | grep -vE '@[0-9a-f]{40}$' | grep -vE 'uses: (\./|\$/|docker://)' | sort -u | sed "s|^|$f: |")
+  [ -n "$hits" ] && bad="$bad$hits
+"
+done
+if [ -n "$bad" ]; then
+  printf '%s' "$bad"; echo "FAIL: $(printf '%s' "$bad" | grep -c .) unpinned action ref(s) above"
+else
+  echo "OK: $scanned workflow file(s) SHA-pinned, $locked covered by actions.lock"
+fi
 
 # 5-7. Run the ONE package manager the project uses. `a || b` is wrong here: these tools exit
 # non-zero when they FIND something, so the fallback fires on a real vulnerability and runs the
@@ -510,20 +638,46 @@ npx license-checker-rseidelsohn --summary 2>/dev/null || true   # any manager, i
 # 8. Agent-ready signals (see 06-agent-ready.md)
 curl -sI "https://DOMAIN/" | grep -iE "^link:" || echo "MISSING: Link headers"
 curl -sI -H "Accept: text/markdown" "https://DOMAIN/" | grep -i "^content-type: text/markdown" || echo "MISSING: Markdown-for-Agents"
-curl -sI "https://DOMAIN/.well-known/http-message-signatures-directory" | grep -i "^content-type: application/json" || echo "MISSING: Web Bot Auth JWKS"
+# Web Bot Auth: a 404 is correct unless the site operates a bot that signs its outbound requests
+# (06-agent-ready.md §4). Set SIGNS_REQUESTS=yes only for such a site.
+SIGNS_REQUESTS=no
+if [ "$SIGNS_REQUESTS" = yes ]; then
+  curl -sI --max-time 10 "https://DOMAIN/.well-known/http-message-signatures-directory" | grep -i "^content-type: application/http-message-signatures-directory+json" || echo "MISSING: Web Bot Auth key directory (site signs requests)"
+else
+  echo "INFO: Web Bot Auth not checked — no signing bot, so no key directory is expected"
+fi
 ```
 
 > Check 4 was rewritten on 2026-08-14 because the previous regex — `uses: [^a-zA-Z].*@v[0-9]` —
 > **matched nothing on any real workflow**: it required a non-letter immediately after `uses: `,
 > while every action reference starts with an owner name. Confirmed by running it against a
 > fixture containing two deliberately unpinned third-party actions; it exited 1 and printed
-> nothing, i.e. it reported "all pinned" for a repo that was not. The replacement lists every
-> tag-pinned action and filters out first-party `actions/*` and `github/*`, so anything printed
-> is an actual finding. Beware the inverted reading of this one: **output means a problem**,
-> silence means clean.
+> nothing, i.e. it reported "all pinned" for a repo that was not. On 2026-10-14 it changed again:
+> it no longer exempts first-party `actions/*` and `github/*` (GitHub's own guidance has no such
+> carve-out, §13.7), it catches branch refs such as `@main` as well as `@v…` tags, and it skips local
+> `./` actions and `docker://` images. Later the same day it was rewritten a third time, after a
+> review showed the lockfile branch printed `OK` and skipped every file whenever `actions.lock`
+> existed — a fixture with one onboarded workflow and an un-onboarded `release.yml` using a
+> tag-pinned third-party action passed. GitHub onboards workflows "one at a time or all at once",
+> and "Dependencies that aren't in the lockfile still need a full-length SHA" (verified 2026-10-14 —
+> [workflow dependency lockfiles](https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles),
+> [repository Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)).
+> The check now reads the onboarded paths from the lockfile's `workflows:` section (the format on
+> the first page) and greps every other `.yml`/`.yaml` file. It also tolerates several spaces after
+> `uses:`, quoted refs, flow-style `{ uses: … }` steps and CRLF files, ignores commented-out lines,
+> and skips `$/…` references, which `gh actions-lock` writes for in-repo actions and which are
+> "inherently pinned" ([lock workflow dependencies](https://docs.github.com/en/actions/how-tos/secure-your-work/lock-workflow-dependencies)).
+> Tested on 2026-10-14 under sh, bash and zsh against fixtures covering each of those cases, a
+> repo with no lockfile, and one with no workflows (the file list comes from `find`, not a glob,
+> because zsh aborts on a glob that matches nothing). If a future lockfile format stops matching, nothing counts as onboarded and
+> every workflow is grepped — noisy, never silently clean. A cross-repository reusable workflow
+> (`owner/repo/.github/workflows/x.yml@v2`) is listed too; the SHA-pinning setting still accepts
+> those by tag ("Reusable workflows can still be referenced by tag", same settings page), so treat
+> that line as a judgement call rather than a policy violation. The last line is the verdict:
+> `OK: …` or `FAIL: N unpinned action ref(s) above`.
 
 Roll output into severity gap report:
 - 🔴 **Critical**: active CVE, secret detected, no branch protection
-- 🟡 **Recommended**: no Dependabot/Renovate, no CI audit gate, unpinned third-party actions, license violation, no `Link:` headers
+- 🟡 **Recommended**: no Dependabot/Renovate, no CI audit gate, actions not SHA-pinned (outside workflows onboarded to `actions.lock`), license violation, no `Link:` headers, no Web Bot Auth key directory on a site that operates a signing bot
 - 🟢 **Nice**: no SBOM, no socket.dev, no pre-commit secret scan, no Markdown-for-Agents
-- ⚪ **Intent only**: no `Content-Signal`, no Web Bot Auth JWKS — no known technical effect (`06-agent-ready.md`)
+- ⚪ **Intent only**: no `Content-Signal` — no known technical effect (`06-agent-ready.md`)

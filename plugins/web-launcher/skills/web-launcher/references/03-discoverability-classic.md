@@ -2,7 +2,7 @@
 
 *Loaded by `web-launcher` SKILL for every site. Read this first for SEO-related work.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 Every site gets these files + meta tags. Templates below. See `04-geo.md` for GEO extensions,
@@ -19,8 +19,10 @@ fifty-page one, and the meta template below is written for the single-page case.
 Allow all + explicit AI crawler acknowledgement.
 
 **Token accuracy matters more than the directive.** Every token below was checked against the
-operator's own published list on 2026-08-14. A dead token is not harmless: it reads as coverage,
-so anyone who later flips this template to `Disallow` blocks nothing while believing they did.
+operator's own published list on 2026-10-14. A dead token is not harmless: it reads as coverage,
+so anyone who later flips this template to `Disallow` blocks nothing while believing they did. The
+same rule keeps **user-triggered fetchers** out of the template: their operators say robots.txt may
+not apply to them, so a line for them is coverage on paper only (table below).
 
 ```
 # PROJECT — https://DOMAIN
@@ -29,17 +31,19 @@ so anyone who later flips this template to `Disallow` blocks nothing while belie
 User-agent: *
 Allow: /
 
-# OpenAI — verified 2026-08-14 (https://developers.openai.com/api/docs/bots)
+# Every token below honours robots.txt per its operator, except where noted — verified 2026-10-14.
+
+# OpenAI (https://developers.openai.com/api/docs/bots)
 User-agent: GPTBot
-Allow: /
-User-agent: ChatGPT-User
 Allow: /
 User-agent: OAI-SearchBot
 Allow: /
+# Not covered by the line above: OpenAI names only OAI-SearchBot and GPTBot as robots.txt tags,
+# and OAI-AdsBot "only visits pages submitted as ads". A Disallow here is undocumented.
 User-agent: OAI-AdsBot
 Allow: /
 
-# Anthropic — verified 2026-08-14 (https://support.claude.com/en/articles/8896518)
+# Anthropic (https://support.claude.com/en/articles/8896518)
 User-agent: ClaudeBot
 Allow: /
 User-agent: Claude-User
@@ -47,20 +51,72 @@ Allow: /
 User-agent: Claude-SearchBot
 Allow: /
 
-# Others — token names from operator lists, not re-verified individually
+# Google — a control token, not a crawler (https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers)
 User-agent: Google-Extended
 Allow: /
+
+# Apple — a control token, not a crawler: "Applebot-Extended does not crawl webpages" (https://support.apple.com/en-us/119829)
 User-agent: Applebot-Extended
 Allow: /
+
+# Perplexity (https://docs.perplexity.ai/docs/resources/perplexity-crawlers)
 User-agent: PerplexityBot
 Allow: /
+
+# Meta — Meta AI search (https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers)
+User-agent: Meta-WebIndexer
+Allow: /
+
+# Common Crawl (https://commoncrawl.org/ccbot)
 User-agent: CCBot
 Allow: /
+
+# Amazon (https://developer.amazon.com/amazonbot)
 User-agent: Amazonbot
+Allow: /
+User-agent: Amzn-SearchBot
 Allow: /
 
 Sitemap: https://DOMAIN/sitemap.xml
 ```
+
+**Apple's opt-outs are split across three mechanisms**, and only one is in robots.txt (verified
+2026-10-14 — [About Applebot](https://support.apple.com/en-us/119829)):
+
+- `Applebot-Extended` `Disallow` opts out of training *"Apple's general purpose foundation
+  models"*. Pages that disallow it *"can still be included in search results"*.
+- `nosnippet` (`<meta name="robots" content="nosnippet">`, or `<meta name="applebot" …>` for Apple
+  alone) opts out of the broad world-knowledge answers: Apple *"will not use data tagged nosnippet
+  as additional context and up-to-date content when AI models are used to generate output"*.
+- `X-Robots-Tag: applebot: nosnippet` carries the same directive as an HTTP header, for non-HTML
+  files or server-level rules.
+
+Apple adds that even with both, Applebot may still crawl and the content *"will remain discoverable
+through Spotlight, Siri, and Safari"*.
+
+**User-triggered fetchers — deliberately not in the template.** Each operator says the fetcher acts
+on a user's request and may not follow robots.txt, so a `Disallow` for it is a request, not a
+control. Block them at the edge (WAF, bot rules) if blocking is the goal (all verified 2026-10-14
+on the operator pages linked in the template, Google's on
+[User-triggered fetchers](https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers)):
+
+| Token | Operator's words |
+|-------|------------------|
+| `ChatGPT-User` | *"Because these actions are initiated by a user, robots.txt rules may not apply."* Was in this template until 0.3.x |
+| `Perplexity-User` | *"Since a user requested the fetch, this fetcher generally ignores robots.txt rules."* |
+| `Meta-ExternalFetcher` | *"fetches individual links at a user's request … Accordingly, this crawler may bypass robots.txt rules."* |
+| `Amzn-User` | *"it may not follow all robots.txt directives"* |
+| `Google-Agent`, `Google-GeminiNotebook` | Listed under Google's user-triggered fetchers, which *"generally ignore robots.txt rules"*. `Google-Agent` is Google's agent acting on user requests. `Google-GeminiNotebook` succeeds `Google-NotebookLM`, which Google lists as a former agent supported until August 2026 — an older robots.txt naming it addresses nothing now |
+
+`Meta-WebIndexer`, in the template, is on the same Meta page: *"Allowing Meta-WebIndexer in your
+robots.txt file helps us cite and link to your content in Meta AI's responses."* (verified
+2026-10-14).
+
+<!-- Fetching Meta's crawler page: a browser User-Agent without navigation headers gets a 400.
+     Send Accept: text/html…, Sec-Fetch-Mode: navigate, Sec-Fetch-Dest: document and
+     Upgrade-Insecure-Requests: 1 for the HTML page, or curl with its default curl/x.y User-Agent
+     for a Markdown copy;
+     both carry the wording quoted above. Re-fetch that way rather than marking it unquoted. -->
 
 **Removed on 2026-08-14, do not put back:**
 
@@ -71,9 +127,14 @@ Sitemap: https://DOMAIN/sitemap.xml
 | `cohere-ai` | Could not be confirmed in any operator-published list; unverifiable, so it is out |
 | `Bytespider` | Token is real, but it is widely reported to ignore `robots.txt`. Listing it implies a control that does not exist |
 
-**`Content-Signal` is deliberately not in this template.** It is a policy declaration with no
-technical effect today — see `06-agent-ready.md`. Add it if the site wants to state intent, not
-because it changes crawler behaviour.
+**`Content-Signal` is deliberately not in this template.** It is a policy declaration. None of the
+operator pages linked above mentions it; the one documented consumer is Cloudflare's own Browser
+Run `/crawl` endpoint, which rejects with a `400` a crawl whose declared purpose the site's
+`Content-Signal` sets to `no`, or whose declared content-use level is more permissive than the
+site's `use` level (verified 2026-10-14 —
+[/crawl endpoint: Content Signals](https://developers.cloudflare.com/browser-run/quick-actions/crawl-endpoint/#content-signals)).
+See `06-agent-ready.md`. Add it if the site wants to state intent, not because it changes how the
+major crawlers behave.
 
 ## `sitemap.xml`
 
@@ -84,11 +145,14 @@ Minimal for single-page:
   <url>
     <loc>https://DOMAIN/</loc>
     <lastmod>YYYY-MM-DD</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
   </url>
 </urlset>
 ```
+
+No `<changefreq>` or `<priority>`: *"Google ignores `<priority>` and `<changefreq>` values."* It does
+use `<lastmod>` when it is *"consistently and verifiably"* accurate, so set it to the last
+significant content change, not the build date (verified 2026-10-14 —
+[Build and submit a sitemap](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)).
 
 Multi-page: see `05-multipage-seo.md` — use framework integrations (`@astrojs/sitemap`, `next-sitemap`, Hugo native).
 
@@ -99,7 +163,7 @@ Emerging convention (llmstxt.org). Factual, scannable. This is also the GEO prim
 **Reality check (2026) — don't oversell it.** Google added a note to its AI optimization guide on
 2026-06-15 saying these files *"aren't needed for Google Search (and won't negatively or positively
 impact your visibility or rankings)"*, and the guide tells site owners they can ignore *"creating
-unnecessary AI text files (like llms.txt)"* (verified 2026-09-25 —
+unnecessary AI text files (like llms.txt)"* (verified 2026-10-14 —
 [Search Central documentation updates](https://developers.google.com/search/updates),
 [AI optimization guide](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)).
 ⚠️ The claim that requests for `/llms.txt` are a negligible share of LLM crawler traffic comes from
@@ -107,9 +171,15 @@ third-party bot-traffic write-ups and has no primary source here. Either way it 
 or GEO *ranking* factor. Where it still earns its place: (a) the **agentic web / B2A layer** —
 agents acting on a user's behalf can consume a clean entry brief, and (b) **Lighthouse's "Agentic
 Browsing" category** runs an `llms-txt` audit by default from 13.3.0, published 2026-05-07
-(verified 2026-09-25 — npm registry and the published `default-config.js`; details in
+(verified 2026-10-14 — npm registry and the published `default-config.js` of 13.2.0 and 13.3.0; details in
 `11-validation-toolkit.md` §11.3). Ship it as cheap agent-facing infrastructure; never pitch it to
 a user as a rankings lever.
+
+To make the file findable from the pages it describes, llmstxt.org now recommends standard link
+relations — `rel="describedby"` pointing at the `llms.txt` that covers a page, and
+`rel="alternate" type="text/markdown"` pointing at the page's own markdown version — as a `<link>`
+element or a `Link:` header (verified 2026-10-14 — [llmstxt.org](https://llmstxt.org/)). Only the
+first applies to a site that ships no per-page markdown.
 
 ```markdown
 # PROJECT_NAME
@@ -144,9 +214,14 @@ Contact: https://github.com/USER/REPO/security/advisories/new
 Contact: mailto:REAL_EMAIL
 Preferred-Languages: en
 Canonical: https://DOMAIN/.well-known/security.txt
-Expires: <12-to-18-months-from-now>T00:00:00.000Z
+Expires: <under-12-months-from-now>T00:00:00.000Z
 Policy: https://github.com/USER/REPO/blob/main/SECURITY.md
 ```
+
+RFC 9116 §2.5.5: *"It is RECOMMENDED that the value of this field be less than a year into the
+future to avoid staleness"* (verified 2026-10-14 —
+[RFC 9116](https://www.rfc-editor.org/rfc/rfc9116.html#section-2.5.5)). Put the renewal in a calendar;
+an expired file is treated as stale.
 
 **Verify before including**:
 - Email address actually exists (don't list `security@DOMAIN` if no MX record — bounces)
@@ -225,6 +300,14 @@ Typical triad for software / marketing projects, in `<head>`:
 
 **Critical**: `Organization.logo` absolute URL (not relative) is what makes your logo appear in Google Knowledge Panel / SERP. See `10-brand-serp.md` for troubleshooting.
 
+**`SoftwareApplication` here is valid markup, not a rich result.** Google's software-app rich
+result requires `aggregateRating` or `review` alongside `name` and `offers.price`, and the template
+carries neither — the Rich Results Test will report the item as ineligible (verified 2026-10-14 —
+[Software app structured data](https://developers.google.com/search/docs/appearance/structured-data/software-app)).
+Tell the user plainly: the rich result needs real ratings or reviews from real users, following
+Google's review-snippet guidelines. Never invent a rating to fill the field; without one the markup
+still describes the app and stays valid.
+
 Validate after deploy with:
 - https://search.google.com/test/rich-results
 - https://validator.schema.org/
@@ -238,10 +321,9 @@ Validate after deploy with:
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-<!-- These two are PNG on purpose and must not be switched to favicon.svg:
-     apple-touch-icon is not rendered from SVG by iOS, and Google's Organization.logo
-     must be a raster image to appear in the Knowledge Panel. `01-brand-application.md`
-     and `10-brand-serp.md` carry the sourced versions of both claims.
+<!-- Keep favicon.ico: Google Search favicons accept BMP/GIF/ICO/PNG/JPEG/PPM/TIFF, not SVG,
+     so favicon.svg is for browsers only. apple-touch-icon stays PNG for iOS
+     (01-brand-application.md). Organization.logo may be SVG or PNG — see 10-brand-serp.md.
      No mask-icon: 01 drops it, and it never took a full-colour SVG anyway. -->
 
 <meta name="application-name" content="PROJECT" />
@@ -265,6 +347,15 @@ Validate after deploy with:
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://DOMAIN/og-cover.png" />
 ```
+
+Favicon formats for Google Search: BMP, GIF, ICO, PNG, JPEG, PPM, TIFF; square, at least 8×8 px,
+larger than 48×48 px recommended (verified 2026-10-14 —
+[Favicons in Search](https://developers.google.com/search/docs/appearance/favicon-in-search)).
+
+`theme-color` is cosmetic and narrow: Chrome on Android uses it; desktop Chrome (73+) and Safari
+26+ (macOS and iOS) use it only for installed web apps; Firefox not at all (verified 2026-10-14 —
+MDN browser-compat-data `html.elements.meta.name.theme-color`). Never report its absence as a
+finding.
 
 ## Verification
 

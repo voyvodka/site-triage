@@ -2,18 +2,21 @@
 
 *Loaded by `web-launcher` SKILL when user asks "my logo doesn't show in Google" or "my brand isn't ranking #1".*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 >
-> Google publishes no timings for any of the signals below, so this file quotes none. Tell the
-> user "days to weeks, depending on how often the site is crawled" and point at Search Console
-> for the actual signal — the same rule as `09-audit-workflow.md` Step 6 and `12-indexing.md`.
+> Google publishes no timings for the signals in this file — logo, brand rank, sitelinks, rich
+> snippets — so this file quotes none. Its only published ranges are for crawling after a request,
+> for canonical clusters, and for Validate Fix in Search Console (*"typically takes up to about two
+> weeks"*) — all three in `12-indexing.md`, "Realistic timeline"; do not stretch them to cover a
+> logo. Tell the user "days to weeks, depending on how often the site is crawled" and point
+> at Search Console for the actual signal — the same rule as `09-audit-workflow.md` Step 6.
 
 ## Reality check (set expectations honestly before promising anything)
 
 | Signal | How to provide | What gates the timing |
 |---|---|---|
-| Organization logo in Knowledge Panel / SERP | `Organization` schema with absolute `logo` URL (≥112×112 px, PNG ≥512 ideal) | Google re-crawling the page that carries the markup |
+| Organization logo in Knowledge Panel / SERP | `Organization` schema with absolute `logo` URL (≥112×112 px, in a format Google Images supports — PNG or SVG both qualify) | Google re-crawling the page that carries the markup |
 | Brand query rank #1 | Indexed + canonical + `sameAs` profile linking + external backlinks | Domain age and competing sites on the same name — not configuration |
 | Sitelinks (sub-page list below main result) | Clear site structure + sitemap + strong internal linking + age | Google's own choice; no markup requests them |
 | Rich snippets (Product, Review, Article, Event) | Corresponding schema.org type on the page + valid content | Re-crawl, then Google's eligibility decision |
@@ -39,16 +42,21 @@
    ```
    Google uses this to consolidate entity identity.
 
-3. **Logo hygiene** — Google's stated requirements, verified 2026-08-14
-   ([Google — logo structured data](https://developers.google.com/search/docs/appearance/structured-data/logo)):
+3. **Logo hygiene** — Google's stated requirements, verified 2026-10-14
+   ([Google — Organization structured data, `logo`](https://developers.google.com/search/docs/appearance/structured-data/organization);
+   the old `/structured-data/logo` page now redirects there):
    - **Minimum 112×112 px.** That is the documented floor, not a target — go larger.
    - **The image URL must be crawlable and indexable.** A logo behind a `Disallow` or a `noindex`
      header is the most common reason a correct-looking `Organization` block renders nothing.
-   - **Format must be one Google Images supports. SVG is not among them** — ship PNG.
+   - **Format must be one Google Images supports**: BMP, GIF, JPEG, PNG, WebP, SVG, AVIF (verified
+     2026-10-14 — [Google Images best practices](https://developers.google.com/search/docs/appearance/google-images)).
+     SVG is therefore allowed. The templates in this skill ship PNG, which is equally valid; Google
+     documents no preference between the two.
    - Absolute URL (`https://DOMAIN/logo.png`, not `/logo.png`).
    - Google also advises checking that the logo "looks how you intend it to look on a purely white
      background".
-   - Serving `/favicon.svg` alongside is fine — just put the PNG URL in `Organization.logo`.
+   - The Search *favicon* is a separate image whose format list has no SVG — keep an ICO or PNG
+     there (`03-discoverability-classic.md`).
 
 4. **Backlinks from authoritative sources**:
    - GitHub repo README prominently links to site with quality screenshot
@@ -58,9 +66,9 @@
 5. **Wikidata entry** (if notable) — feeds structured facts that Google's Knowledge Graph draws on.
    Takes weeks for curation. Do not call it the *strongest* entity signal — see `12-indexing.md`.
 
-6. **Bing Webmaster Tools** — Bing is more permissive with new domains; often faster first ranking than Google. See `12-indexing.md`.
+6. **Bing Webmaster Tools** — ⚠️ often said to be more permissive with new domains and faster to a first ranking than Google; no Bing source states it. See `12-indexing.md`.
 
-7. **IndexNow protocol** (Bing, Yandex, Naver, Seznam — NOT Google yet) — push URL changes instantly. See `12-indexing.md`.
+7. **IndexNow protocol** (Amazon, Bing, Naver, Seznam.cz, Yandex, Yep — not Google) — notifies participants of URL changes immediately; crawling is still their call. Participant list and sources in `12-indexing.md`.
 
 ## Failure modes — diagnose first
 

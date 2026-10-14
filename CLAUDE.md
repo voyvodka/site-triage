@@ -51,7 +51,9 @@ follow one of them.
   on every update. Anything the plugin must keep goes to `${CLAUDE_PLUGIN_DATA}`.
 - **The plugin never updates itself, never cuts a release, never changes git state.** It proposes
   and waits for approval. "Self-improving" means exactly this and nothing more.
-- **Search Console is read-only apart from `sitemaps.submit`.** There is no request-indexing and no
+- **The plugin uses Search Console read-only apart from `sitemaps.submit`.** The API's other writes
+  (`sitemaps.delete`, `sites.add`, `sites.delete`) change the account, not what Google knows about
+  the content, and the plugin never calls them. There is no request-indexing and no
   start-validation endpoint; do not write code that pretends otherwise.
 - **Never branch on `coverageState` text.** It is free-form and localized — the same state reads
   differently in Turkish and English. Branch on `pageFetchState`, `indexingState`, `googleCanonical`.

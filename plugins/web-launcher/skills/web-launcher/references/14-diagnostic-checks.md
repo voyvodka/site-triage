@@ -3,9 +3,11 @@
 *Loaded by `web-launcher` SKILL for any Mode B audit, and whenever a Search Console reason class
 needs to be traced to a cause. Read this before writing a gap report about a live site.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Every check below was executed against two live
-> production sites on that date and each one either caught a real defect or cleared a suspected
-> one. They are measurements, not lint rules.
+> **Verified 2026-10-14 · review by 2026-12-13.** Every check below was executed against two live
+> production sites on 2026-08-14 and each one either caught a real defect or cleared a suspected
+> one — except the C2 Content Signals Policy sub-check, added on 2026-10-14 from Cloudflare's
+> documentation and not yet run against a live site. They are measurements, not lint rules. The
+> Search Console labels and vendor behaviour they cite were re-read on 2026-10-14.
 
 ## Why this file exists
 
@@ -101,7 +103,15 @@ something that resolves.
 
 **Explains:** a stated crawler policy that is not the one being served. CDNs with "managed
 robots.txt" features prepend their own block, and their block can invert what the repository
-declares.
+declares. On Cloudflare the feature is now **Bot Preference Sync** under AI bot policies (Search,
+Agent, Training): when a policy is set to block, Cloudflare prepends a block between
+`# BEGIN Cloudflare Managed content` and `# END Cloudflare Managed Content`, including a
+`Content-signal: search=yes, ai-train=no, use=reference` line. A Free-plan zone with **no**
+robots.txt of its own and the feature off is served Cloudflare's *Content Signals Policy* text
+instead — a CDN answering for a file the repo never shipped, though not a policy inversion. The
+same policy text also precedes every managed block: Cloudflare *"includes the Content Signals
+Policy whenever Bot Preference Sync adds managed directives"* (verified 2026-10-14 —
+[robots.txt setting](https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/)).
 
 ```bash
 # Written with a temp file rather than `diff <(...)`, which is bash-only.
@@ -114,8 +124,13 @@ else
   else
     echo "FAIL live robots.txt differs from repo — edge injection or stale deploy"
   fi
+  # Cloudflare's Content Signals Policy text precedes every managed block, so it is reported
+  # only on its own: a Free zone with no robots.txt and Bot Preference Sync off.
   if grep -qi 'managed content' "$live"; then
     echo "FAIL a CDN is injecting a managed robots.txt block"
+  elif grep -qi 'agree to abide by the' "$live" \
+     && ! grep -qi 'agree to abide by the' ./public/robots.txt 2>/dev/null; then
+    echo "FAIL live robots.txt carries a CDN content-signals policy text the repo does not ship"
   else
     echo "OK   no CDN-managed block in live robots.txt"
   fi
@@ -123,16 +138,24 @@ fi
 rm -f "$live"
 ```
 
+Search Console may flag `Content-signal` lines as *"Syntax not understood"*; Cloudflare documents
+the warning and reports no effect on crawling. It is not the defect — the mismatch with the
+repository is.
+
 Adjust the repo path per framework (`public/`, `static/`, `assets/`). Run the same diff for
 `llms.txt` and `security.txt`.
 
-**Cannot be fixed in code.** Turn the managed feature off at the CDN dashboard, or accept its
-policy and align the repo to it — but never leave two conflicting declarations live.
+**Cannot be fixed in code.** Turn the managed feature off at the CDN dashboard (Cloudflare: Bot
+Preference Sync), or accept its policy and align the repo to it — but never leave two conflicting
+declarations live. After the change, the Search Console robots.txt report can request a recrawl of
+the file (`16-search-console.md`).
 
 ## C3 — Host and scheme consolidation must be permanent
 
-**Explains:** split authority, and "Page with redirect" that never consolidates. `301`/`308` pass
-signals to the target; `302`/`307` explicitly do not. Exactly one of the four host/scheme variants
+**Explains:** split authority, and "Page with redirect" that never consolidates. Google's indexing
+pipeline uses a `301`/`308` as *"a signal that the redirect target should be canonical"*; for `302`/`307` it
+*"doesn't use the redirect as a signal that the redirect target should be canonical"* (verified
+2026-10-14 — [Redirects and Google Search](https://developers.google.com/search/docs/crawling-indexing/301-redirects)). Exactly one of the four host/scheme variants
 may answer `200` — the canonical origin in `BASE`. The other three must redirect permanently and
 land on it. Two variants both answering `200` is the defect itself, not two passes.
 
@@ -159,7 +182,9 @@ fi
 
 ## C4 — No more than one hop, counting meta-refresh
 
-**Explains:** crawl budget waste and "Page with redirect" on URLs that do eventually resolve.
+**Explains:** crawl budget waste and "Page with redirect" on URLs that do eventually resolve —
+and "Redirect error" when the chain grows too long or loops. Googlebot follows up to 10 hops; this
+check fails at two because every hop past the first is waste, not because Google gives up.
 `curl -L` does **not** count meta-refresh, so an HTTP hop followed by a meta-refresh reads as one
 hop while actually being two. Framework-level `redirects` maps often emit exactly this shape.
 
@@ -191,6 +216,12 @@ hop_count "$BASE/old-path"
 
 **Fix:** move aliases from the framework's HTML-emitting redirect map to platform-level rules
 (`_redirects`, edge redirect rules) so they resolve in a single HTTP hop.
+
+**Not for the host/scheme variants.** C4 is for content aliases and redirect-map entries. The four
+`http(s)://(www.)DOMAIN/` variants belong to C3, which checks where the chain ends, not its length:
+`http://www.DOMAIN/` taking two hops (Always Use HTTPS, then the www rule) is accepted in
+`08-cloudflare-deploy.md` (www → apex), or collapsed to one by widening the rule there. Do not feed
+those URLs to `hop_count` and report a second verdict on them.
 
 ## C5 — Every sitemap URL must return 200
 
@@ -236,7 +267,8 @@ C6 and C9 below also read `$BASE/sitemap.xml` — on an index, point them at a c
 
 ## C6 — Canonical must equal the URL that served it
 
-**Explains:** "Alternate page with proper canonical tag" and "Google chose a different canonical".
+**Explains:** "Alternate page with proper canonical tag", "Duplicate without user-selected
+canonical" and "Duplicate, Google chose different canonical than user".
 A trailing-slash mismatch between the served URL and its canonical is the usual cause.
 
 ```bash
@@ -316,8 +348,9 @@ Assert one line per declaration in `_headers`. A declaration nobody checks is a 
 
 ## C9 — `og:image` must exist and resolve
 
-**Explains:** social cards that render blank. Also catches SVG cards, which the major platforms do
-not render.
+**Explains:** social cards that render blank. Also catches SVG cards. ⚠️ That the major platforms
+do not render SVG `og:image` has no primary source here (X's card docs refused an automated fetch
+on 2026-10-14) — treat an SVG hit as a strong warning, not a proven blank card.
 
 ```bash
 # The pipeline runs in a subshell, so the counters are written to a file rather than

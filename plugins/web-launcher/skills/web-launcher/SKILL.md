@@ -1,6 +1,6 @@
 ---
 name: web-launcher
-description: Use when diagnosing why a live site is not indexed or not cited, or when the user asks about SEO, GEO, Google Search Console, indexing problems, sitemap, robots.txt, llms.txt, JSON-LD, meta tags, OG image, favicon, Cloudflare Workers/Pages, wrangler, Lighthouse, Core Web Vitals, Bing Webmaster, isitagentready, Dependabot, or a brand rollout. Traces Search Console reasons (not indexed, page with redirect, alternate canonical, 404) to the file or setting that causes them, scores AI-search visibility with GeoDaddy, and applies brand kits. Covers shipping, auditing and improving static / marketing / coming-soon / documentation / portfolio sites: classic SEO, GEO, AI-crawlability, structured data, agent-ready signals, Cloudflare Workers deployment with custom domain + SSL + www→apex redirect, and dependency + supply-chain hardening. Greenfield launches, retroactive audits and brand-only refreshes; single-page and multi-page.
+description: Use when diagnosing why a live site is not indexed or not cited, or when the user asks about SEO, GEO, Google Search Console, indexing problems, sitemap, robots.txt, llms.txt, JSON-LD, meta tags, OG image, favicon, Cloudflare Workers/Pages, wrangler, Lighthouse, Core Web Vitals, Bing Webmaster, isitagentready, Dependabot, or a brand rollout. Traces Search Console reasons (not indexed, page with redirect, alternate canonical, 404) to the file or setting that causes them, runs GeoDaddy's GEO checks, and applies brand kits. Covers shipping, auditing and improving static / marketing / coming-soon / documentation / portfolio sites: classic SEO, GEO, AI-crawlability, structured data, agent-ready signals, Cloudflare Workers deployment with custom domain + SSL + www→apex redirect, and dependency + supply-chain hardening. Greenfield launches, retroactive audits and brand-only refreshes; single-page and multi-page.
 ---
 
 # web-launcher
@@ -22,7 +22,7 @@ You are a launch + SEO + supply-chain specialist for static / marketing / docs s
 
 ## Freshness
 
-**Content verified: 2026-08-14. Review due: 2026-10-13 (60 days).**
+**Content verified: 2026-10-14. Review due: 2026-12-13 (60 days).**
 
 This field moves fast — in the four months before that audit, a Google rich result was withdrawn, two crawler tokens were retired, and three recommended commands stopped working. Stale advice here is worse than none.
 
@@ -66,9 +66,9 @@ runs all eight, because step 8 probes a live site.
 Then write a **severity-ranked gap report**:
 
 - 🔴 **Critical**: missing `lang`, no canonical, no robots.txt, broken sitemap, no HTTPS, active CVE, committed secret, no branch protection
-- 🟡 **Recommended**: missing Organization schema (= no logo in Google SERP), missing og:image, incomplete meta, no AI crawler declarations, no Dependabot/Renovate, no CI audit gate, unpinned third-party Actions (incl. `@latest` lhci/Lighthouse — non-deterministic CI), no `Link:` headers
+- 🟡 **Recommended**: missing Organization schema (= no logo in Google SERP), missing og:image, incomplete meta, no AI crawler declarations, no Dependabot/Renovate, no CI audit gate, Actions not SHA-pinned — GitHub's own included — and not covered by a workflow lockfile (incl. `@latest` lhci/Lighthouse — non-deterministic CI), no `Link:` headers
 - 🟢 **Nice**: llms.txt, humans.txt, apple-touch-icon, HSTS preload, additional schema types (Article/Breadcrumb/Product), Markdown-for-Agents, SBOM, socket.dev, pre-commit secret scan
-- ⚪ **Intent only — no known technical effect** (say so when proposing): `Content-Signal`, `Content-Usage` (AIPREF), empty Web Bot Auth JWKS. Free to add, but never present them as protection or as a ranking factor — see `06-agent-ready.md`
+- ⚪ **Intent only — almost no technical effect** (say so when proposing): `Content-Signal`, `Content-Usage` (AIPREF); Cloudflare's own `/crawl` endpoint is the one documented consumer. Free to add, but never present them as protection or as a ranking factor — see `06-agent-ready.md`
 
 Get user approval on the plan before executing. Work in phases (brand → discoverability → deploy →
 harden → validate), report back between phases. **Mode C is the brand phase and nothing else** —
@@ -118,12 +118,12 @@ These tripped past launches. Apply defensively without needing to open a referen
 - **A Worker script does not run for requests that match a static asset.** Host redirects and header logic look fine on random paths while every real page bypasses them. Set `run_worker_first` or move the logic to a zone rule, and test on a real page (`08-cloudflare-deploy.md`, routing order).
 - **Long `max-age` / `immutable` paths outlive a redeploy** in browsers, and no purge reaches a browser cache. Everything else revalidates by default — test with a cache-busting query string rather than asking for a purge.
 - **`wrangler login`'s OAuth token carries `zone:read` only** — it cannot create Redirect Rules, change SSL mode or purge cache. The www→apex redirect is a zone Redirect Rule the user adds in the dashboard; a Worker redirect is the fallback and needs `run_worker_first` (`08-cloudflare-deploy.md`).
-- **`og:image` as SVG** — Twitter/X, Meta, LinkedIn don't render SVG social cards. Always PNG.
+- **`og:image` as SVG** — no social platform documents SVG support for cards (unverified either way — `14-diagnostic-checks.md` C9). Always PNG.
 - **Fonts in SVG logotypes** — `<text font-family="...">` depends on system font; outline to paths for distribution.
 - **Email in security.txt** — verify address actually exists before publishing (no MX on new domains = bounces).
 - **Committed secrets** — rotating the credential comes first, BEFORE rewriting git history. Then `git filter-repo --path <file> --invert-paths` + force-push. Never just `git rm` — old commits retain it.
 - **Running both Dependabot AND Renovate** on the same repo — pick one; otherwise duplicate PR flood.
-- **Trailing-slash drift** — when framework config sets `trailingSlash: 'always'` (Astro) or equivalent (Next.js `trailingSlash: true`, Hugo `uglyURLs=false`), *every* internal link must include the slash. Header nav, footer, body content, framework `redirects` map targets, and `public/llms.txt` are the common offenders. Each slashless internal link triggers a 308 (or meta-refresh + 308 = 2-hop) redirect — wasting crawl budget and surfacing in GSC as "Page with redirect" / "Redirect error" / "Alternate page with canonical". Audit with `grep -rE 'href="/[^"#]*[^/"]"' src/` plus the redirect-chain probe in `11-validation-toolkit.md` §11.1. Reverse drift (`trailingSlash: 'never'` + trailing-slash internal links) is equally bad — match the framework setting either way.
+- **Trailing-slash drift** — when framework config sets `trailingSlash: 'always'` (Astro) or equivalent (Next.js `trailingSlash: true`, Hugo `uglyURLs=false`), *every* internal link must include the slash. Header nav, footer, body content, framework `redirects` map targets, and `public/llms.txt` are the common offenders. Each slashless internal link triggers a 308 (or meta-refresh + 308 = 2-hop) redirect — wasting crawl budget and surfacing in GSC as "Page with redirect" (a chain that loops or runs too long becomes "Redirect error"). Audit with `grep -rE 'href="/[^"#]*[^/"]"' src/` plus the redirect-chain probe in `11-validation-toolkit.md` §11.1. Reverse drift (`trailingSlash: 'never'` + trailing-slash internal links) is equally bad — match the framework setting either way.
 
 ## Output conventions
 

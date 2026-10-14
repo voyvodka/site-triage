@@ -2,7 +2,7 @@
 
 *Loaded by `web-launcher` SKILL when site has multiple routes (docs/, blog/, marketing subpages).*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 Single-page baseline from `03-discoverability-classic.md` is insufficient once you have routes. Every route needs its own meta + canonical + og + schema.
@@ -34,16 +34,16 @@ Not just root. Framework integrations:
 **Prefer the framework's own mechanism over a plugin.** Two of the packages this file used to
 recommend are unmaintained, and in the Next.js case the framework absorbed the feature years ago.
 
-| Framework | Use | Checked 2026-08-14 |
+| Framework | Use | Checked 2026-10-14 |
 |---|---|---|
-| Astro | `@astrojs/sitemap` — auto from `src/pages/` | `3.7.4`, published 2026-08-31 — maintained (re-checked 2026-09-25) |
-| Next.js | **Built-in: `app/sitemap.ts`** returning a `MetadataRoute.Sitemap` array; `generateSitemaps()` to split large sites | Introduced in `v13.3.0`; localisation added in `14.2.0` ([Next.js docs](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap)). **Do not add `next-sitemap`** — last published 2023-09-06 |
+| Astro | `@astrojs/sitemap` — auto from `src/pages/` | `3.7.4`, published 2026-08-31 — maintained (still latest 2026-10-14) |
+| Next.js | **Built-in: `app/sitemap.ts`** returning a `MetadataRoute.Sitemap` array; `generateSitemaps()` to split large sites | Introduced in `v13.3.0`; localisation added in `14.2.0` ([Next.js docs](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap)). **Do not add `next-sitemap`** — last published 2023-09-06 (still, 2026-10-14) |
 | Hugo | Built-in — `hugo` emits `/sitemap.xml` | — |
-| Eleventy | Write a template that renders the collection to XML | `eleventy-plugin-sitemap` last published 2020-06-20; six years unmaintained |
-| SvelteKit | An endpoint that renders the XML, or `svelte-sitemap` | `4.0.4`, published 2026-06-30 — maintained (still latest 2026-09-25) |
+| Eleventy | Write a template that renders the collection to XML | `eleventy-plugin-sitemap` last published 2020-06-20 (still, 2026-10-14); six years unmaintained |
+| SvelteKit | An endpoint that renders the XML, or `svelte-sitemap` | `4.1.2`, published 2026-10-09 — maintained (checked 2026-10-14) |
 | Plain static | Hand-write or generate from the filesystem | — |
 
-npm dates above come from the registry on 2026-08-14, re-read 2026-09-25. A generator that has
+npm dates above come from the registry, last read 2026-10-14 (`npm view <pkg> time`). A generator that has
 not shipped in years is not automatically broken, but it is one framework release away from being
 so — and a sitemap that silently stops updating is invisible until Search Console reports stale
 URLs.
@@ -117,7 +117,7 @@ For each indexed route:
 - [ ] Unique `meta description` (≤160 chars)
 - [ ] `<link rel="canonical">` points to this URL
 - [ ] `og:title` / `og:description` / `og:image` — unique per page
-- [ ] Appropriate JSON-LD: `Article` for posts, `BreadcrumbList` everywhere nested. **Not `HowTo`, not `FAQPage`** — Google renders neither (see `04-geo.md`, verified 2026-08-14)
+- [ ] Appropriate JSON-LD: `Article` for posts, `BreadcrumbList` everywhere nested. **Not `HowTo`, not `FAQPage`** — Google renders neither: the FAQ rich result stopped showing in May 2026 and its documentation was removed in June; HowTo was deprecated in 2023 (verified 2026-10-14 — [Search Central documentation updates](https://developers.google.com/search/updates#removing-faq-rich-result), [HowTo deprecation](https://developers.google.com/search/updates#how-to-deprecation); the old `/structured-data/faqpage` and `/structured-data/how-to` URLs redirect there). See `04-geo.md`
 - [ ] ≥2 internal links in or out
 - [ ] All internal `href` values match the framework's trailing-slash policy (no 308 chains — see `09-audit-workflow.md` §1d)
 - [ ] Not accidentally noindex from staging leftover

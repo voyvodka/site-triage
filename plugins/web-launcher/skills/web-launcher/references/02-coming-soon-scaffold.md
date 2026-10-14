@@ -2,7 +2,7 @@
 
 *Loaded by `web-launcher` SKILL when user wants a single-page coming-soon / landing HTML in Mode A.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 ## Structure
@@ -33,8 +33,8 @@ deploy/
 
 `_headers` is valid for Cloudflare Workers static assets — place it in the assets directory, up to
 100 rules, 2,000 characters per line. It applies to static asset responses only, **not** to
-responses your Worker code generates (verified 2026-08-14 —
-[Workers static assets headers](https://developers.cloudflare.com/workers/static-assets/headers/)).
+responses your Worker code generates (verified 2026-10-14 —
+[Workers static assets headers](https://developers.cloudflare.com/workers/static-assets/headers/), page last updated 2026-09-22).
 
 ## HTML skeleton
 
@@ -94,8 +94,8 @@ responses your Worker code generates (verified 2026-08-14 —
 - **`<meta name="robots" content="index,follow">` removed.** It states the default. Google
   documents `all` — "no restrictions for indexing or serving" — as "the default value and has no
   effect if explicitly listed", and says a page may be indexed and its links followed when neither
-  `noindex` nor `nofollow` is specified (verified 2026-08-14 —
-  [Google robots meta tag docs](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag)).
+  `noindex` nor `nofollow` is specified (verified 2026-10-14 —
+  [Google robots meta tag docs](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag), page last updated 2026-03-24).
   Write a robots meta tag only when the value is *not* the default (a staging page wanting
   `noindex`, for example).
 - **`rel="apple-touch-icon"` now points at a PNG, not the SVG.** Apple's web-content docs specify
@@ -104,19 +104,34 @@ responses your Worker code generates (verified 2026-08-14 —
   `01-brand-application.md` carries the sourced version and the caveats. Ship an opaque PNG and
   verify on a device. MDN lists `apple-touch-icon` as a non-standard `rel` value, which is
   expected — it is Apple's.
-- **`favicon.ico` alongside the SVG.** SVG favicons reach Safari only from 26.0; the ICO covers
-  the rest (`01-brand-application.md`, icon set). Add `site.webmanifest` and the icons it lists
-  from the same file if the page should be installable.
+- **`favicon.ico` alongside the SVG.** SVG favicons reach Safari only from 26.0 (verified
+  2026-10-14 — [WebKit, Safari 26.0 features](https://webkit.org/blog/17333/webkit-features-in-safari-26-0/):
+  "now supports the SVG file format for icons … including favicons"); the ICO covers the rest
+  (`01-brand-application.md`, icon set). The ICO is also the file Google Search can use: its
+  favicon formats are BMP, GIF, ICO, PNG, JPEG, PPM and TIFF — no SVG — with larger than 48×48
+  recommended (verified 2026-10-14 —
+  [Favicon in Google Search](https://developers.google.com/search/docs/appearance/favicon-in-search),
+  page last updated 2026-08-28). Add `site.webmanifest` and the icons it lists from the same file
+  if the page should be installable.
 - **`rel="mask-icon"` dropped.** Safari-only, for macOS pinned tabs, and absent from MDN's `rel`
-  value list entirely (verified 2026-08-14 —
+  value list entirely (verified 2026-10-14 against the mdn/content source —
   [MDN rel attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel)).
   Harmless if kept; it buys one browser surface and costs a monochrome SVG export.
-- **`theme-color` split by `prefers-color-scheme`.** Safari has supported the tag on macOS and iOS
-  since 15, and was the first desktop browser to honour the `media` attribute with
-  `prefers-color-scheme`; Chrome supports it from 93 but only for installed PWAs. Browsers take the
-  first tag whose media query matches (verified 2026-08-14 —
-  [MDN theme-color](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/name/theme-color)).
-  A single unconditional `theme-color` paints a dark bar behind light-mode users.
+- **`theme-color` split by `prefers-color-scheme`.** Where the tag is used, the HTML spec picks
+  the first `theme-color` meta in tree order whose `media` matches and whose `content` parses as a
+  colour (verified 2026-10-14 —
+  [HTML spec, obtaining a page's theme color](https://html.spec.whatwg.org/multipage/semantics.html#meta-theme-color)),
+  so a light/dark pair follows the user's scheme. Where it is used is now narrow. Per
+  browser-compat-data (verified 2026-10-14 —
+  [BCD `meta` name `theme-color`](https://github.com/mdn/browser-compat-data/blob/main/html/elements/meta.json),
+  surfaced on [MDN theme-color](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/name/theme-color)):
+  Safari from 15, but **from Safari 26 only for installed web apps** (BCD mirrors the Safari data
+  to iOS, so the same applies there); Chrome desktop from 73, **installed PWAs only**; Chrome on
+  Android from 92 in the browser itself; Firefox not at all. Neither Apple's Safari 26.0 release notes
+  nor WebKit's Safari 26.0 feature post mention the change (both read 2026-10-14), so BCD is the
+  best source there is. In practice: keep the pair — it is cheap and correct for installed apps and
+  Android Chrome — but do not promise a coloured browser bar in a desktop or iOS Safari tab, and
+  make the page's own top background carry the look.
 - **`rel="canonical"` added.** A coming-soon page is exactly the kind of URL that gets reached with
   campaign parameters and both host spellings; one self-referential canonical settles it.
 - **`color-scheme` added.** Tells the UA to render form controls, scrollbars and the default
@@ -128,7 +143,7 @@ The `<link>` to a font CDN is render-blocking and adds a third-party origin to t
 `preconnect` shaves the handshake but does not remove the dependency. Self-hosting the `.woff2`
 next to the HTML removes the origin and lets you `preload` the file — but web.dev's own guidance is
 that in practice the measured difference between the two is "less clear cut" than the theory
-suggests (verified 2026-08-14 — [web.dev font best practices](https://web.dev/articles/font-best-practices)).
+suggests (verified 2026-10-14 — [web.dev font best practices](https://web.dev/articles/font-best-practices); the article itself was last updated 2022-10-04, so treat it as old guidance that has not been revised, not as a fresh measurement).
 For a single-page coming-soon, the honest answer is that either works; self-host if the page must
 also avoid handing visitor IPs to a third party.
 

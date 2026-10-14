@@ -2,7 +2,7 @@
 
 *Loaded by `web-launcher` SKILL after every deploy, or when validating any change.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 ## 11.1 Curl probe — every deploy
@@ -20,8 +20,14 @@ done
 # www → apex redirect (must be 301) — on a real page AND a random path. A random path alone
 # passes even when a Worker redirect runs behind asset serving and never sees real pages
 # (08-cloudflare-deploy.md, routing order).
-curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/" | head -3
-curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/test-$(date +%s)" | head -3
+# Status and location on one line; `head -3` cut off `location`, which sits further down.
+curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/" | grep -iE '^(HTTP|location)' | tr -d '\r' | paste -sd' ' -
+curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/test-$(date +%s)" | grep -iE '^(HTTP|location)' | tr -d '\r' | paste -sd' ' -
+# …and the http:// legs, which a rule matching only https://www.* leaves at two hops
+# (08-cloudflare-deploy.md, www → apex). %{http_code} tells an unreachable host (000) from a
+# clean 0-hop answer — both print "0 hops -> http://…" otherwise.
+curl -sIL --max-time 10 -o /dev/null -w '%{num_redirects} hops -> %{url_effective} %{http_code}\n' "http://www.DOMAIN/"
+curl -sIL --max-time 10 -o /dev/null -w '%{num_redirects} hops -> %{url_effective} %{http_code}\n' "http://DOMAIN/"
 
 # Agent-ready signals
 curl -sI --resolve DOMAIN:443:$IP "https://DOMAIN/" | grep -i "^link:"
@@ -39,19 +45,30 @@ done
 ```
 
 Expected:
-- All real paths **200**; `www.*` **301** on both the real page and the random path
+- All real paths **200**; `www.*` **301** with `location: https://DOMAIN/…` on both the real page
+  and the random path
+- `http://DOMAIN/` → `1 hops -> https://DOMAIN/ 200`. `http://www.DOMAIN/` → the same in 1 hop
+  when the www rule matches both schemes, or `2 hops -> https://DOMAIN/ 200` with the HTTPS-only
+  rule — both acceptable (`08-cloudflare-deploy.md`, www → apex). A trailing `000` means the host
+  did not answer: not checked, not a pass
 - `/random-unknown-path` — **200** on an SPA (index fallback), **404** on a static or SSR site. Decide
   which shape the site is *before* reading this line, otherwise it proves nothing either way.
 - `Link:` header present with the relations the site declares in `_headers` (C8 checks each one)
 - `Content-Signal:` present in robots.txt **only if the site chose to state it** — absence is not a
-  finding (`06-agent-ready.md` priority matrix)
+  finding (`06-agent-ready.md` priority matrix). If it appears and the repo never declared it, a
+  CDN is injecting it — `14-diagnostic-checks.md` C2
 - Content-Type markdown when `Accept: text/markdown`
+- `/.well-known/http-message-signatures-directory` — **404 is correct** unless the site operates a
+  bot that signs requests (`09-audit-workflow.md` Step 1b)
 - **`hops=0`** on every internal-link probe. Any non-zero is trailing-slash drift or a legacy-alias chain — see `09-audit-workflow.md` §1d for the source-grep + fix.
 
 > Probe syntax executed against a live public host on **2026-08-14** (curl 8.x / LibreSSL, macOS):
 > the `--resolve` form, the `-w 'hops=%{num_redirects} status=%{http_code} final=%{url_effective}'`
 > format string, and every `grep` above run as written. A `grep` that finds nothing exits 1 and
-> prints nothing — that is a *finding* (header absent), not a broken command.
+> prints nothing — that is a *finding* (header absent), not a broken command. The www status +
+> `location` one-liner and the http:// hop probes with `%{http_code}` replaced earlier forms on
+> **2026-10-14** and were run as written against live public hosts that day, including an
+> unresolvable one (`0 hops -> http://… 000`).
 
 These probes overlap deliberately with `14-diagnostic-checks.md`, which is the deeper set. Use
 §11.1 as the fast post-deploy smoke test; when a probe here comes back wrong, switch to
@@ -59,42 +76,43 @@ These probes overlap deliberately with `14-diagnostic-checks.md`, which is the d
 
 ## 11.2 External validator matrix
 
-Every row below was probed on **2026-08-14**; `(checked …)` means the URL was requested and
+Every row below was re-probed on **2026-10-14**; `(checked …)` means the URL was requested and
 answered, not that the tool's output was independently judged correct.
 
 | Tool | URL | Checks |
 |---|---|---|
-| **Rich Results Test** | https://search.google.com/test/rich-results *(checked 2026-08-14)* | Google-parseable schemas, rich snippet eligibility |
-| **Schema.org Validator** | https://validator.schema.org/ *(checked 2026-08-14)* | Full JSON-LD syntax + type correctness |
-| **PageSpeed Insights** | https://pagespeed.web.dev/ *(checked 2026-08-14)* | Field CrUX data **and** a Lighthouse lab run in one report — the only place to see both side by side |
-| **OG Preview** | https://www.opengraph.xyz/ or https://metatags.io/ *(both checked 2026-08-14)* | og:*, twitter:*, image resolves, card renders |
-| **Facebook Sharing Debugger** | https://developers.facebook.com/tools/debug/ *(checked 2026-08-14 ⚠️)* | og:* parse + force re-scrape of the Meta cache. ⚠️ Endpoint is live but login-gated — an anonymous request returns 400, so only the *reachability* of the tool was verified, not its behaviour |
-| **LinkedIn Post Inspector** | https://www.linkedin.com/post-inspector/ *(checked 2026-08-14)* | LinkedIn share preview + cache re-scrape |
-| **Nu HTML Checker** (W3C) | https://validator.w3.org/nu/ *(checked 2026-08-14)* | HTML syntax, unclosed tags, invalid attribute values |
-| **CSS Validator** (W3C) | https://jigsaw.w3.org/css-validator/ *(checked 2026-08-14)* | CSS syntax against the current spec profile |
-| **SSL Labs** | https://www.ssllabs.com/ssltest/ *(checked 2026-08-14)* | TLS grade, cipher suites, cert chain — target **A+**. Scriptable via `https://api.ssllabs.com/api/v4/` |
-| **MDN HTTP Observatory** | https://developer.mozilla.org/en-US/observatory *(checked 2026-08-14)* | Security-header grade: CSP, HSTS, `X-Content-Type-Options`, cookie flags. **Moved** — the old `observatory.mozilla.org` host now redirects here; update any bookmark still pointing at it |
-| **securitytxt.org validator** | https://securitytxt.org/ *(checked 2026-08-14)* | `/.well-known/security.txt` syntax per RFC 9116 |
-| **Google Safe Browsing** | https://transparencyreport.google.com/safe-browsing/search *(checked 2026-08-14)* | blocklist status |
-| **WAVE accessibility** | https://wave.webaim.org/ *(checked 2026-08-14)* | a11y errors, contrast, alerts |
-| **Hreflang checker** (i18n only) | https://hreflang.org/ *(checked 2026-08-14)* | language/region targeting |
-| **Is It Agent Ready?** | https://isitagentready.com/ *(checked 2026-08-14)* | Agentic-web readiness: Link headers, Content-Signal, Markdown-for-Agents, Web Bot Auth, MCP/WebMCP discovery. Operated by Cloudflare, and its recommendations are LLM-generated — the page says so itself, so treat its advice as a lead, not a verdict |
+| **Rich Results Test** | https://search.google.com/test/rich-results *(checked 2026-10-14)* | Google-parseable schemas, rich snippet eligibility |
+| **Schema.org Validator** | https://validator.schema.org/ *(checked 2026-10-14)* | Full JSON-LD syntax + type correctness |
+| **PageSpeed Insights** | https://pagespeed.web.dev/ *(checked 2026-10-14)* | Field CrUX data **and** a Lighthouse lab run in one report — the only place to see both side by side |
+| **OG Preview** | https://www.opengraph.xyz/ or https://metatags.io/ *(metatags.io checked 2026-10-14; opengraph.xyz checked 2026-08-14 and ⚠️ answered 429 to an automated probe on 2026-10-14)* | og:*, twitter:*, image resolves, card renders |
+| **Facebook Sharing Debugger** | https://developers.facebook.com/tools/debug/ *(checked 2026-10-14 ⚠️)* | og:* parse + force re-scrape of the Meta cache. ⚠️ Endpoint is live but login-gated — an anonymous request returns 400, so only the *reachability* of the tool was verified, not its behaviour |
+| **LinkedIn Post Inspector** | https://www.linkedin.com/post-inspector/ *(checked 2026-10-14)* | LinkedIn share preview + cache re-scrape |
+| **Nu HTML Checker** (W3C) | https://validator.w3.org/nu/ *(checked 2026-10-14)* | HTML syntax, unclosed tags, invalid attribute values |
+| **CSS Validator** (W3C) | https://jigsaw.w3.org/css-validator/ *(checked 2026-10-14)* | CSS syntax against the current spec profile |
+| **SSL Labs** | https://www.ssllabs.com/ssltest/ *(checked 2026-10-14)* | TLS grade, cipher suites, cert chain — target **A+**. Scriptable via `https://api.ssllabs.com/api/v4/` |
+| **MDN HTTP Observatory** | https://developer.mozilla.org/en-US/observatory *(checked 2026-10-14)* | Security-header grade: CSP, HSTS, `X-Content-Type-Options`, cookie flags. **Moved** — the old `observatory.mozilla.org` host now redirects here; update any bookmark still pointing at it |
+| **securitytxt.org validator** | https://securitytxt.org/ *(checked 2026-10-14)* | `/.well-known/security.txt` syntax per RFC 9116 |
+| **Google Safe Browsing** | https://transparencyreport.google.com/safe-browsing/search *(checked 2026-10-14)* | blocklist status |
+| **WAVE accessibility** | https://wave.webaim.org/ *(checked 2026-10-14)* | a11y errors, contrast, alerts |
+| **Hreflang checker** (i18n only) | https://hreflang.org/ *(checked 2026-10-14)* | language/region targeting |
+| **Is It Agent Ready?** | https://isitagentready.com/ *(checked 2026-10-14)* | Agentic-web readiness: 22 checks in 5 categories — discoverability, content accessibility, bot access control, API/auth/MCP discovery, commerce — with a documented `POST /api/scan` API ([its llms.txt](https://isitagentready.com/llms.txt), read 2026-10-14). Operated by Cloudflare, and its recommendations are AI-generated — the page says so itself, so treat its advice as a lead, not a verdict |
 
 **Removed in the 2026-08-14 audit** — do not re-add these; both were checked and are gone:
 
 | Tool | What the probe returned | Do this instead |
 |---|---|---|
-| ~~Mobile-Friendly Test~~ (`search.google.com/test/mobile-friendly`) | **Retired.** The URL now redirects to the Lighthouse documentation *(checked 2026-08-14)* | Lighthouse's mobile run (§11.3). ⚠️ Its SEO category no longer carries font-size or tap-target audits (absent from the 13.5.0 `default-config.js`, checked 2026-09-25) — check legibility and tap spacing by hand on a phone-width viewport |
-| ~~Twitter/X Card Validator~~ (`cards-dev.twitter.com/validator`) | **Login-gated and unmaintained.** Redirects to an X login page; the preview feature was withdrawn and X has shipped no replacement *(checked 2026-08-14)* | Validate `twitter:*` tags with the OG preview tools above, then confirm the real render by pasting the URL into the X composer — the card renders without posting |
+| ~~Mobile-Friendly Test~~ (`search.google.com/test/mobile-friendly`) | **Retired.** The URL now redirects to the Lighthouse documentation *(checked 2026-10-14)* | Lighthouse's mobile run (§11.3). ⚠️ Its SEO category no longer carries font-size or tap-target audits (absent from the 13.5.0 `default-config.js`, checked 2026-10-14) — check legibility and tap spacing by hand on a phone-width viewport |
+| ~~Twitter/X Card Validator~~ (`cards-dev.twitter.com/validator`) | **Login-gated and unmaintained.** Redirects to an X login page *(checked 2026-10-14)*; the preview feature was withdrawn and X has shipped no replacement *(checked 2026-08-14)* | Validate `twitter:*` tags with the OG preview tools above, then confirm the real render by pasting the URL into the X composer — the card renders without posting |
 
 ⚠️ **`securityheaders.com` is deliberately absent.** It returned 403 to every probe attempted on
-2026-08-14, so whether it is bot-blocking or offline could not be determined. MDN HTTP Observatory
+2026-08-14 and again on 2026-10-14, so whether it is bot-blocking or offline could not be
+determined. MDN HTTP Observatory
 covers the same ground and did verify.
 
 ## 11.3 Lighthouse deep dive
 
 Current release: **Lighthouse 13.5.0**, published 2026-09-18 (`npm view lighthouse dist-tags`,
-*checked 2026-09-25*). Pin this in CI rather than tracking `@latest` — scores are not comparable
+*checked 2026-10-14*; `next` is a 13.5.0 dev build). Pin this in CI rather than tracking `@latest` — scores are not comparable
 across versions.
 
 Run headless in both form factors:
@@ -116,7 +134,7 @@ open lh-mobile.report.html
 ```
 
 > **There is no `--preset=mobile`.** `--preset` accepts exactly `perf`, `experimental`, `desktop`
-> — verified in `cli/cli-flags.js` of the published 13.5.0 tarball, *2026-09-25*. Passing
+> — verified in `cli/cli-flags.js` of the published 13.5.0 tarball, *2026-10-14*. Passing
 > `--preset=mobile` fails argument validation; mobile emulation is what you get by default.
 
 **Target scores: 95+ desktop, 90+ mobile** for static sites.
@@ -124,12 +142,12 @@ open lh-mobile.report.html
 ### The "Agentic Browsing" category
 
 A fifth category, **Agentic Browsing**, sits alongside Performance / Accessibility / Best Practices
-/ SEO in the standard config. Verified 2026-08-14 by extracting `core/config/default-config.js`
+/ SEO in the standard config. Verified 2026-10-14 by extracting `core/config/default-config.js`
 from the published npm tarballs: the category is **absent in 13.2.0 and earlier, present from
 13.3.0 onward** (13.3.0 published 2026-05-07). It needs no flag and no custom config.
 
 It scores how ready a page is for an AI agent to *operate* it. Its audits, read from
-`default-config.js` in 13.5.0 (*checked 2026-09-25*):
+`default-config.js` in 13.5.0 (*checked 2026-10-14*):
 
 | Audit | Group |
 |---|---|
@@ -159,7 +177,7 @@ It does **not** affect Search ranking. Treat it as the lab-side companion to `is
 
 > **lhci lag is real and still unresolved.** `@lhci/cli@0.15.1` (latest) declares
 > `"lighthouse": "12.6.1"` as a pinned dependency — read from the package manifest on the npm
-> registry, *checked 2026-09-25*. Lighthouse 12.6.1 has no agentic-browsing category, so a
+> registry, *checked 2026-10-14*. Lighthouse 12.6.1 has no agentic-browsing category, so a
 > `categories:agentic-browsing` assertion in `lighthouserc.json` errors rather than failing
 > cleanly. Get the category from the **standalone** `npx lighthouse@13.5.0` until lhci bundles
 > ≥ 13.3.0. Pin both tools by exact version in CI (`@lhci/cli@0.15.1`, not `@latest`).
@@ -225,8 +243,8 @@ Automated tooling catches only a fraction of real accessibility defects — keyb
 order and screen-reader coherence are largely invisible to it. ⚠️ The often-quoted "~30%" figure
 is not sourced here; treat "Lighthouse passing" as necessary, never sufficient, and go deeper:
 
-- **axe DevTools** browser extension — https://www.deque.com/axe/devtools/ *(checked 2026-08-14)*, run on every template
-- **WAVE** https://wave.webaim.org/ *(checked 2026-08-14)* — paste URL
+- **axe DevTools** browser extension — https://www.deque.com/axe/devtools/ *(checked 2026-10-14)*, run on every template
+- **WAVE** https://wave.webaim.org/ *(checked 2026-10-14)* — paste URL
 - **Screen reader sanity** — VoiceOver (macOS, Cmd+F5) top-to-bottom on landing:
   - Hierarchy makes sense
   - Headings announce correctly
