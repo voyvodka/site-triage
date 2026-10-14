@@ -1,6 +1,6 @@
 # Brand search / logo-in-SERP troubleshooting
 
-*Loaded by `web-launcher` SKILL when user asks "my logo doesn't show in Google" or "my brand isn't ranking #1".*
+*Loaded by `site-triage` SKILL when user asks "my logo doesn't show in Google" or "my brand isn't ranking #1".*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.

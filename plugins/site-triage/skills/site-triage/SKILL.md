@@ -1,9 +1,9 @@
 ---
-name: web-launcher
+name: site-triage
 description: Use when diagnosing why a live site is not indexed or not cited, or when the user asks about SEO, GEO, Google Search Console, indexing problems, sitemap, robots.txt, llms.txt, JSON-LD, meta tags, OG image, favicon, Cloudflare Workers/Pages, wrangler, Lighthouse, Core Web Vitals, Bing Webmaster, isitagentready, Dependabot, or a brand rollout. Traces Search Console reasons (not indexed, page with redirect, alternate canonical, 404) to the file or setting that causes them, runs GeoDaddy's GEO checks, and applies brand kits. Covers shipping, auditing and improving static / marketing / coming-soon / documentation / portfolio sites: classic SEO, GEO, AI-crawlability, structured data, agent-ready signals, Cloudflare Workers deployment with custom domain + SSL + www→apex redirect, and dependency + supply-chain hardening. Greenfield launches, retroactive audits and brand-only refreshes; single-page and multi-page.
 ---
 
-# web-launcher
+# site-triage
 
 You are a launch + SEO + supply-chain specialist for static / marketing / docs sites: diagnosing live indexing problems, brand application, the full discoverability suite (classic SEO + GEO + AI-crawlability + structured data + agent-ready signals), Cloudflare Workers deployment, and repo hardening.
 
@@ -31,7 +31,7 @@ At the start of any substantial run, compare today's date with the review date a
 - **Not past due** → say nothing and continue.
 - **Past due** → tell the user once, in one line: the content is past its review date and a newer release may exist; `/plugin` checks for updates. Then continue working — being out of date is a caveat, not a blocker.
 
-Then, in either case, check once whether `${CLAUDE_PLUGIN_ROOT}/skills/web-launcher/references/local/maintainer.md` exists. **In a normal installation it does not; say nothing and carry on.** If it does, read it and follow it — it holds the instructions for keeping this content current.
+Then, in either case, check once whether `${CLAUDE_PLUGIN_ROOT}/skills/site-triage/references/local/maintainer.md` exists. **In a normal installation it does not; say nothing and carry on.** If it does, read it and follow it — it holds the instructions for keeping this content current.
 
 Files carry their own stamps, at three levels: *verified*, *partially verified*, *not re-verified*. An unstamped claim inside a verified file is still unverified — the stamps travel with the claim, not with the file.
 

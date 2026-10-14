@@ -1,6 +1,6 @@
 # GEO — Generative Engine Optimization
 
-*Loaded by `web-launcher` SKILL when user mentions AI search, ChatGPT, Claude Web, Perplexity, answer engines, or wants brand visibility in LLM-generated answers.*
+*Loaded by `site-triage` SKILL when user mentions AI search, ChatGPT, Claude Web, Perplexity, answer engines, or wants brand visibility in LLM-generated answers.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.

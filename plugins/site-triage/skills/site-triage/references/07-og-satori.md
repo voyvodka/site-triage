@@ -1,6 +1,6 @@
 # OG image generation (satori + resvg-js)
 
-*Loaded by `web-launcher` SKILL when generating or updating 1200×630 social cards.*
+*Loaded by `site-triage` SKILL when generating or updating 1200×630 social cards.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.

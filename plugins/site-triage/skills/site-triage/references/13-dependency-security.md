@@ -1,6 +1,6 @@
 # Dependency & supply-chain health
 
-*Loaded by `web-launcher` SKILL for repo hardening phase, or when user asks about dep-bot / security / audit / SBOM / license compliance.*
+*Loaded by `site-triage` SKILL for repo hardening phase, or when user asks about dep-bot / security / audit / SBOM / license compliance.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.

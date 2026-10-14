@@ -1,6 +1,6 @@
 # Validation toolkit
 
-*Loaded by `web-launcher` SKILL after every deploy, or when validating any change.*
+*Loaded by `site-triage` SKILL after every deploy, or when validating any change.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.

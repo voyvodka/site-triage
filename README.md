@@ -1,4 +1,4 @@
-# web-launcher
+# site-triage
 
 A Claude Code plugin that works out why a live site is not showing up in Google, traces each
 reason to the file or setting that causes it, fixes it, and verifies the fix.
@@ -34,16 +34,16 @@ checks here are runnable commands with one-line verdicts, not prose.
 ## Install
 
 ```
-/plugin install web-launcher --marketplace voyvodka/claude-plugins
+/plugin install site-triage --marketplace voyvodka/claude-plugins
 ```
 
 That adds the catalog and installs the plugin in one command, on Claude Code 2.1.275 or later (from the
-shell, `claude plugin install web-launcher --marketplace voyvodka/claude-plugins` needs 2.1.292).
+shell, `claude plugin install site-triage --marketplace voyvodka/claude-plugins` needs 2.1.292).
 On an older version, register the catalog first:
 
 ```
 /plugin marketplace add voyvodka/claude-plugins
-/plugin install web-launcher@voyvodka
+/plugin install site-triage@voyvodka
 ```
 
 Requires Claude Code. The diagnostic checks need `curl`, `grep` and a POSIX shell — present on
@@ -65,7 +65,7 @@ starting again re-runs the download.
 Invoke it in a site's repository:
 
 ```
-/web-launcher
+/site-triage
 ```
 
 It picks a mode — launch, audit, or brand-only — scans the project, and produces a

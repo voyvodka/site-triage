@@ -1,6 +1,6 @@
 # Brand application
 
-*Loaded by `web-launcher` SKILL for Mode C (brand-only) or the brand phase of Mode A/B.*
+*Loaded by `site-triage` SKILL for Mode C (brand-only) or the brand phase of Mode A/B.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.

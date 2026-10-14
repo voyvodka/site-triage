@@ -1,4 +1,4 @@
-# web-launcher — Agent Instructions
+# site-triage — Agent Instructions
 
 A Claude Code plugin that diagnoses why a live site is not indexed, fixes it, and verifies the fix.
 

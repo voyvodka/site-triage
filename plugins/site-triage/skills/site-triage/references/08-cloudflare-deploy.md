@@ -1,6 +1,6 @@
 # Cloudflare Workers deployment (wrangler + static assets + zone settings)
 
-*Loaded by `web-launcher` SKILL for Mode A deploy phase, or Mode B when changing infrastructure.*
+*Loaded by `site-triage` SKILL for Mode A deploy phase, or Mode B when changing infrastructure.*
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
