@@ -2,7 +2,7 @@
 
 *Loaded by `web-launcher` SKILL after initial deploy to accelerate discovery.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 **Scope split — read this before anything else.** This file is the *interface* playbook: what a
@@ -21,8 +21,9 @@ file points at it rather than restating it.
    - Content: paste `google-site-verification=...` string from GSC
    - Save → back to GSC → **Verify**
 3. Post-verification:
-   - **Sitemaps** → submit `https://DOMAIN/sitemap.xml`. This is also the *only* write the API
-     offers (`sitemaps.submit`) — see `16-search-console.md`.
+   - **Sitemaps** → submit `https://DOMAIN/sitemap.xml`. Through the API, `sitemaps.submit` is the
+     only write that tells Google anything about the content; the other writes (`sitemaps.delete`,
+     `sites.add`, `sites.delete`) only change the account — see `16-search-console.md`.
    - **URL Inspection** → paste homepage → **Request indexing**. Interface only. There is no
      request-indexing endpoint for ordinary web pages in any Google API; the Indexing API covers
      `JobPosting` and `BroadcastEvent` alone (`16-search-console.md`, "The four walls"). Never
@@ -30,16 +31,25 @@ file points at it rather than restating it.
    - Repeat for 3-5 key pages (docs landing, pricing, about). Google confirms a quota exists but
      does not publish the number: *"there's a quota for submitting individual URLs and requesting a
      recrawl multiple times for the same URL won't get it crawled any faster"* (verified
-     2026-08-14 — [Ask Google to recrawl](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl)).
+     2026-10-14 — [Ask Google to recrawl](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl)).
      ⚠️ The "10-12 URLs per day" figure that circulates in SEO writing has no primary source — do
      not quote a number to the user. For anything past a handful of URLs the documented path is the
      sitemap, not the inspection tool.
-4. Monitor weekly. Current report names (verified 2026-08-14 — [Page indexing report](https://support.google.com/webmasters/answer/7440203),
+4. Monitor weekly. Current report names (verified 2026-10-14 — [Page indexing report](https://support.google.com/webmasters/answer/7440203),
    [Reports at a glance](https://support.google.com/webmasters/answer/9133276)):
    - **Page indexing** — this is the report formerly called *Index coverage*. Google's help now
      names it "Page indexing report"; saying "Coverage report" to a user sends them looking for a
      menu entry that is not there.
-   - **Performance** — impressions, CTR, average position per query
+   - **Performance** — impressions, CTR, average position per query. Its search-type filter splits
+     Web into *Web: text-based* and *Web: multimodal* (Lens, Circle to Search, image uploads)
+     (verified 2026-10-14 — [Performance report](https://support.google.com/webmasters/answer/7576553))
+   - **Generative AI performance** — impressions in AI Overviews and AI Mode, rolled out to all
+     sites on 2026-08-31. Interface only: not in the API or the bulk export. If it is empty or
+     missing, check **Settings → Search generative AI** first — a property set to *Exclude* gets no
+     AI impressions at all (verified 2026-10-14 —
+     [Generative AI performance report](https://support.google.com/webmasters/answer/16984139),
+     [Search generative AI control](https://support.google.com/webmasters/answer/16908024);
+     details in `16-search-console.md`)
    - **Core Web Vitals** — still a current report; field data from real Chrome users
    - **Rich result status** reports — one per structured-data feature, plus **Sitemaps**,
      **Links**, **Manual actions**, **Security issues**. ⚠️ The old single "Enhancements" nav group
@@ -52,31 +62,42 @@ file points at it rather than restating it.
 2. **Import from Google Search Console** (fastest — imported sites arrive already verified, up to
    100 per import). Bing re-checks ownership by syncing with the linked GSC account, so if that
    access is later revoked the sites drop back to needing meta-tag or DNS verification (verified
-   2026-08-14 — [Import sites from Search Console to Bing Webmaster Tools](https://blogs.bing.com/webmaster/september-2019/Import-sites-from-Search-Console-to-Bing-Webmaster-Tools)).
+   2026-10-14 — [Import sites from Search Console to Bing Webmaster Tools](https://blogs.bing.com/webmaster/september-2019/Import-sites-from-Search-Console-to-Bing-Webmaster-Tools)).
    This is why GSC comes first.
 3. Submit sitemap
 4. Enable **IndexNow** (generate key, host as `.txt` on site — see below)
 
+Once the site is in, Bing Webmaster Tools also has an **AI Performance** report (public preview
+since 2026-02-10): citations of the site in Copilot, Bing's AI summaries and partner experiences,
+cited pages, and sampled grounding queries (verified 2026-10-14 —
+[Introducing AI Performance in Bing Webmaster Tools](https://blogs.bing.com/webmaster/February-2026/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview)).
+How to read it is in `15-geo-measurement.md`.
+
 **URL submission quota.** Bing's published ceiling is **10,000 URLs/day per site**, but it is
 adaptive, not an entitlement: *"The daily quota per site will be determined based on the site
-verified age in Bing Webmaster tool, site impressions and other signals"* (verified 2026-08-14 —
+verified age in Bing Webmaster tool, site impressions and other signals"* (verified 2026-10-14 —
 [bingbot Series: submitting up to 10,000 URLs per day](https://blogs.bing.com/webmaster/january-2019/bingbot-Series-Get-your-content-indexed-fast-by-now-submitting-up-to-10,000-URLs-per-day-to-Bing)).
-A freshly verified domain gets a small fraction of that. ⚠️ The 2019 announcement remains the most
-specific published figure; the current help pages do not restate it, so treat it as a ceiling of
+A freshly verified domain gets a small fraction of that. The same post now opens with a note
+(updated November 2025): *"Microsoft now recommends using IndexNow as the primary method for
+real-time URL submission to Bing and participating search engines"* — so set up IndexNow before
+leaning on the Webmaster Tools submission quota. ⚠️ The 2019 figure remains the most specific
+published one; the current help pages were not re-checked for it, so treat it as a ceiling of
 unknown present accuracy rather than today's number.
 
 ## IndexNow protocol (not Google)
 
-Participants named by the protocol's own FAQ (verified 2026-08-14 —
+Participants named by the protocol's own FAQ (verified 2026-10-14 —
 [indexnow.org/faq](https://www.indexnow.org/faq)): **Amazon, Bing, Naver, Seznam.cz, Yandex, Yep**.
-Submitting to any one endpoint propagates the URL to the others.
+The site's machine-readable list, `indexnow.org/searchengines.json`, also names the Internet
+Archive, with no endpoint in the FAQ. Submitting to any one endpoint propagates the URL to the
+others.
 
 **Google is absent from that list.** ⚠️ No Google document says "we do not support IndexNow" — the
 evidence is absence from the participant list plus the lack of any support announcement, not a
 positive statement. Say that to the user rather than asserting a Google policy.
 `16-search-console.md` reaches the same conclusion from the API side.
 
-**Key file** (verified 2026-08-14 — indexnow.org/faq and
+**Key file** (verified 2026-10-14 — indexnow.org/faq and
 [bing.com/indexnow/getstarted](https://www.bing.com/indexnow/getstarted)):
 
 - 8-128 characters from `a-z`, `A-Z`, `0-9`, `-`
@@ -102,13 +123,14 @@ delivered immediately; whether and when a participant crawls or indexes is not p
 
 Automate as a **step in the deploy pipeline**, not as a Cloudflare trigger.
 
-> ⚠️ **Partly verified, 2026-08-28.** The
-> [Workers configuration docs](https://developers.cloudflare.com/workers/configuration/) were read
-> on that date and document no "deployment finished" event a Worker can subscribe to. That is an
-> absence, not a documented denial — a full enumeration of trigger types was not confirmed, so treat
-> "there is no deploy event" as unverified rather than as fact. What *is* certain is that a step
-> after `wrangler deploy` works, so use that regardless: a line in the CI job, or a `postdeploy`
-> npm script. Whatever already runs the deploy runs the ping.
+> **One exception, scoped to Workers Builds.** A Worker deployed by Cloudflare's own Git-connected
+> **Workers Builds** publishes `cf.workersBuilds.worker.build.succeeded` (and `build.failed`,
+> `build.canceled`) through Queues **Event Subscriptions**, so a queue consumer can send the ping
+> (verified 2026-10-14 —
+> [Events & schemas](https://developers.cloudflare.com/queues/event-subscriptions/events-schemas/)).
+> A `wrangler deploy` run from any other CI emits no such event. For that case — and as the simpler
+> default for every case — put the ping in the step after the deploy: a line in the CI job, or a
+> `postdeploy` npm script. Whatever already runs the deploy runs the ping.
 
 ## Backlink + entity strategy
 
@@ -118,7 +140,7 @@ Automate as a **step in the deploy pipeline**, not as a Cloudflare trigger.
 - **Project README** on the code host links prominently to the site, with an OG-quality screenshot
 - **Personal site ↔ brand site** bidirectional `rel="me"` links. This is a real, checkable
   mechanism on the fediverse side: a profile link is marked verified only when the target page
-  links back with `rel="me"` (verified 2026-08-14 — [Mastodon verification](https://joinmastodon.org/verification)).
+  links back with `rel="me"` (verified 2026-10-14 — [Mastodon verification](https://joinmastodon.org/verification)).
   Its effect on search ranking is not documented by anyone.
 - **Launch posts**: Hacker News (Show HN), Product Hunt, a relevant subreddit, dev.to, personal
   blog. ⚠️ Platform health checked 2026-08-14 by search: no shutdown or wind-down announcement
@@ -134,12 +156,22 @@ Automate as a **step in the deploy pipeline**, not as a Cloudflare trigger.
 
 ## Realistic timeline
 
-**No number goes to the user.** Google explicitly does not commit to a crawl or indexing schedule,
-and no search engine publishes time-to-index targets. The ranges earlier revisions of this file
-carried (first crawl in days, logo in weeks, Knowledge Panel in months) were field observations
-with no source, and they disagreed with the ranges in `10-brand-serp.md` — two unsourced numbers
-for the same event is how a user gets told both. Say "days to weeks, depending on how often the
-site is crawled" and point at the Page indexing report for the actual signal.
+**Only Google's own published ranges go to the user, quoted with their source.** There are three
+(verified 2026-10-14):
+
+- Crawling after a request: *"Crawling can take anywhere from a few days to a few weeks"*, and a
+  request *"does not guarantee that inclusion in search results will happen instantly or even at
+  all"* ([Ask Google to recrawl](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl)).
+- Canonical clusters: after a content fix, Google *"might hold pages in a duplicate cluster for up
+  to two weeks"* ([Fix canonicalization issues](https://developers.google.com/search/docs/crawling-indexing/canonicalization-troubleshooting)).
+- Validate Fix in Search Console: *"typically takes up to about two weeks, but in some cases can
+  take much longer"* ([Page indexing report](https://support.google.com/webmasters/answer/7440203)).
+
+Nothing else has a published number — not indexing itself, not a logo, not a Knowledge Panel. The
+ranges earlier revisions of this file carried for those (first crawl in days, logo in weeks,
+Knowledge Panel in months) were field observations with no source, and they disagreed with
+`10-brand-serp.md`. For anything outside the three above, say "days to weeks, depending on how
+often the site is crawled" and point at the Page indexing report for the actual signal.
 `09-audit-workflow.md` Step 6 states the same rule.
 
 ## Reading a "Page indexing" report the user pasted
@@ -160,7 +192,7 @@ What this file adds is the arithmetic to run first:
    Conflating the two is the most common diagnostic mistake.
 
 Two definitions worth quoting correctly, because the widely repeated versions are wrong (verified
-2026-08-14 — [Page indexing report](https://support.google.com/webmasters/answer/7440203)):
+2026-10-14 — [Page indexing report](https://support.google.com/webmasters/answer/7440203)):
 
 - **Discovered – currently not indexed**: Google's documented meaning is that it *"wanted to crawl
   the URL but this was expected to overload the site; therefore Google rescheduled the crawl."* It
@@ -173,7 +205,7 @@ Two definitions worth quoting correctly, because the widely repeated versions ar
 ## Gotchas
 
 - **Don't over-submit** to GSC — Google states directly that requesting a recrawl repeatedly for
-  the same URL will not get it crawled faster (verified 2026-08-14 —
+  the same URL will not get it crawled faster (verified 2026-10-14 —
   [Ask Google to recrawl](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl)).
   Once is enough, and it spends quota you cannot see.
 - **TXT verification can take a few minutes** to propagate — if GSC says "not verified" after
@@ -182,7 +214,7 @@ Two definitions worth quoting correctly, because the widely repeated versions ar
 - **IndexNow key file** must be served as UTF-8 plain text — a static `.txt`, not a JSON route.
 - **Sitemap limits**: 50,000 URLs *or* 50 MB uncompressed, whichever comes first; past either, split
   and use a sitemap index. An index may list up to 50,000 sitemaps, and a site may submit up to 500
-  index files (verified 2026-08-14 —
+  index files (verified 2026-10-14 —
   [Build a sitemap](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap),
   [Manage large sitemaps](https://developers.google.com/search/docs/crawling-indexing/sitemaps/large-sitemaps)).
 

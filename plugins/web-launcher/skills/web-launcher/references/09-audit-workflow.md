@@ -2,7 +2,7 @@
 
 *Loaded by `web-launcher` SKILL for Mode B (audit & fix of an existing deployed site).*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 When user points at a deployed site and asks for improvements, run this sequence.
@@ -70,15 +70,22 @@ curl -s  --resolve DOMAIN:443:$IP "https://DOMAIN/robots.txt" | grep -i "^conten
 curl -sI -H "Accept: text/markdown" --resolve DOMAIN:443:$IP "https://DOMAIN/" | grep -i "^content-type:"
 # Expect: text/markdown; charset=utf-8 (not text/html)
 
-# Web Bot Auth JWKS
+# Web Bot Auth key directory — only meaningful if the site operates a bot that signs requests
 curl -sI --resolve DOMAIN:443:$IP "https://DOMAIN/.well-known/http-message-signatures-directory" | grep -i "^content-type:"
-# Expect: application/json (not HTML fallback)
+# Expect, if present: application/http-message-signatures-directory+json (not HTML fallback).
+# A plain site that sends no bot traffic has nothing to publish here; 404 is correct.
 ```
 
+The directory's content type, and the requirement that the response be signed, come from
+Cloudflare's Web Bot Auth documentation (verified 2026-10-14 —
+[Web Bot Auth](https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/)).
+
 Also run the hosted Cloudflare scanner for a UI report: `https://isitagentready.com/?url=DOMAIN`
-*(checked 2026-08-14 — live, and confirmed to be operated by Cloudflare)*. Its remediation tips are
-LLM-generated and the page says so; use them as leads and verify each against `06-agent-ready.md`
-before acting.
+*(checked 2026-10-14 — live, © Cloudflare in the footer)*. It now runs 22 checks in 5 categories
+and has a documented API, `POST https://isitagentready.com/api/scan` with `{"url": "…"}` (verified
+2026-10-14 — the scanner's own [llms.txt](https://isitagentready.com/llms.txt)). Its remediation
+tips are AI-generated and the page says so; use them as leads and verify each against
+`06-agent-ready.md` before acting.
 
 A `grep` above that prints nothing exits non-zero — that is the finding (header or directive
 absent), not a broken pipeline. All four probes were executed as written on 2026-08-14.
@@ -100,9 +107,14 @@ ls .github/workflows/*.yml 2>/dev/null | xargs grep -l -E "(audit|snyk|gitleaks)
 grep -o '"packageManager"[^,]*' package.json 2>/dev/null
 ls pnpm-lock.yaml yarn.lock package-lock.json bun.lock bun.lockb 2>/dev/null
 
-# Third-party actions NOT SHA-pinned? Same as 13.11 #4: output is a finding, silence is clean.
-grep -rhoE "uses: [^ ]+@v[0-9][^ ]*" .github/workflows/ 2>/dev/null \
-  | grep -vE "uses: (actions|github)/" | sort -u
+# Actions NOT SHA-pinned, first-party included? Same as 13.11 #4: output is a finding, silence is
+# clean. A workflow lockfile covers tag refs instead.
+if [ -f .github/workflows/actions.lock ]; then
+  echo "OK: workflow lockfile present — tag refs are locked (public preview feature)"
+else
+  grep -rhoE "uses: [^ ]+@[^ #]+" .github/workflows/ 2>/dev/null \
+    | grep -vE "@[0-9a-f]{40}$" | grep -vE "uses: (\./|docker://)" | sort -u
+fi
 
 # Pending CVEs? Run the ONE that matches the project.
 # Not `pnpm audit || npm audit` — audit tools exit non-zero when they FIND something, so the
@@ -116,7 +128,7 @@ fi
 
 ## Step 1d: Internal-link canonicalization audit (catches trailing-slash drift)
 
-Single biggest cause of crawl-budget waste on otherwise-healthy static sites. Framework config declares the canonical URL form (`trailingSlash: 'always'` in Astro, `trailingSlash: true` in Next.js, etc.), then internal links drift over time as developers paste paths without trailing slashes. Sitemap and canonical tags stay correct, so it's invisible in standard probes — but every header/footer/body link triggers a 308, and Googlebot stops at the redirect during initial discovery.
+Single biggest cause of crawl-budget waste on otherwise-healthy static sites. Framework config declares the canonical URL form (`trailingSlash: 'always'` in Astro, `trailingSlash: true` in Next.js, etc.), then internal links drift over time as developers paste paths without trailing slashes. Sitemap and canonical tags stay correct, so it's invisible in standard probes — but every header/footer/body link triggers a 308. Googlebot does follow it (up to 10 hops), so pages are still reached; the cost is an extra fetch per link, internal links that point at non-canonical URLs, and a pile of "Page with redirect" entries. Google's inspection tools do not follow redirects at all (verified 2026-10-14 — [HTTP status codes and Google's crawlers](https://developers.google.com/crawling/docs/troubleshooting/http-status-codes)).
 
 ```bash
 # 1. Detect the project's canonical URL form
@@ -149,11 +161,11 @@ The reverse case (framework set to `trailingSlash: 'never'` but internal links c
 
 Ask user to run (can't be automated without browser):
 
-- **Rich Results Test** https://search.google.com/test/rich-results *(checked 2026-08-14)* → paste URL, confirm WebSite + SoftwareApplication + Organization (or whatever schemas expected) detected
-- **Schema Validator** https://validator.schema.org/ *(checked 2026-08-14)*
-- **OG Preview** https://www.opengraph.xyz/ *(checked 2026-08-14)*
-- **PageSpeed Insights** https://pagespeed.web.dev/ *(checked 2026-08-14)* → the only one-stop view of field (CrUX) and lab data together
-- **Is It Agent Ready** https://isitagentready.com/ *(checked 2026-08-14)*
+- **Rich Results Test** https://search.google.com/test/rich-results *(checked 2026-10-14)* → paste URL, confirm the expected schemas are detected. A `SoftwareApplication` without `aggregateRating` or `review` is detected but not eligible for the rich result — expected for the `03-discoverability-classic.md` template, not a defect to "fix" with an invented rating
+- **Schema Validator** https://validator.schema.org/ *(checked 2026-10-14)*
+- **OG Preview** https://www.opengraph.xyz/ *(checked 2026-08-14; ⚠️ answered 429 to an automated probe on 2026-10-14, so only reachability from a browser is assumed)*
+- **PageSpeed Insights** https://pagespeed.web.dev/ *(checked 2026-10-14)* → the only one-stop view of field (CrUX) and lab data together
+- **Is It Agent Ready** https://isitagentready.com/ *(checked 2026-10-14)*
 
 Run yourself, no browser needed:
 
@@ -209,11 +221,18 @@ Fix group C: new files
 
 Intent-only, only if the user asks to state intent or wants the scanner green (06 matrix):
   - Content-Signal / Content-Usage in robots.txt
-  - /.well-known/http-message-signatures-directory (empty JWKS placeholder)
 ```
 
-Say which of the two reasons applies when proposing an intent-only item. None of them changes a
-crawler's behaviour, so they sit in the ⚪ intent-only band of the `SKILL.md` rubric, never above.
+Say which of the two reasons applies when proposing an intent-only item. None of the major crawler
+operators documents acting on these (Cloudflare's own `/crawl` endpoint is the one documented
+consumer — `03-discoverability-classic.md`), so they sit in the ⚪ intent-only band of the
+`SKILL.md` rubric, never above.
+
+**No Web Bot Auth key directory as a placeholder.** The directory identifies a bot the site itself
+operates; the scanner now requires at least one public key in it, so an empty `{"keys": []}` no
+longer turns the check green (verified 2026-10-14 — the scanner's
+[web-bot-auth skill](https://isitagentready.com/.well-known/agent-skills/web-bot-auth/SKILL.md)).
+A site that sends no signed bot traffic has nothing to publish there.
 
 Get approval per group before writing. Apply changes.
 
@@ -242,11 +261,13 @@ Give user:
 1. **Summary** — what was fixed, what remains, deferred items
 2. **Manual action list** — zone settings they need to change (SSL mode, Bot Fight, etc.)
 3. **Indexing acceleration** — if meta or schema changed, suggest GSC "Request Indexing" (see `12-indexing.md`)
-4. **Expected propagation** — ⚠️ the ranges once quoted here (logo-in-SERP 1–4 weeks, rich snippets
-   1–3 weeks, full reindex 2–8 weeks) have **no source and were not verifiable on 2026-08-14**.
-   Google publishes no such SLA and recrawl intervals vary by site. Tell the user "days to weeks,
-   and it depends on how often this site is crawled" and point them at the Search Console
-   coverage report for the actual signal — never quote a number you cannot source.
+4. **Expected propagation** — quote only Google's published ranges, with the source: crawling
+   after a request *"can take anywhere from a few days to a few weeks"*; a fixed duplicate may stay
+   in its cluster *"for up to two weeks"*; Validate Fix *"typically takes up to about two weeks"*
+   (all verified 2026-10-14; links and wording in `12-indexing.md`, "Realistic timeline"). ⚠️ The
+   ranges once quoted here for logo-in-SERP (1–4 weeks), rich snippets (1–3 weeks) and full reindex
+   (2–8 weeks) have no source — Google publishes none for those. For them say "days to weeks, and it
+   depends on how often this site is crawled" and point at the Search Console Page indexing report.
 
 ## Common Mode B findings
 
@@ -254,12 +275,14 @@ Recurring patterns worth probing early. This is a checklist drawn from prior aud
 frequency table — no measurement backs an ordering, so do not present it to a user as one.
 
 - ❌ Organization schema missing → logo not in SERP Knowledge Panel
-- ⚪ `Content-Signal` missing → the scanner flags it; no crawler acts on it and it is not a GEO
-  factor (`06-agent-ready.md` §2). Mention it as intent-only, never as a defect
+- ⚪ `Content-Signal` missing → the scanner flags it; none of the major crawlers documents acting
+  on it (Cloudflare's `/crawl` is the exception, `03-discoverability-classic.md`) and it is not a
+  GEO factor (`06-agent-ready.md` §2). Mention it as intent-only, never as a defect
 - ❌ `Link:` headers missing → agentic-web probe fails. Confirm with **C8**, which distinguishes
   "never declared" from "declared in `_headers` but not served"
-- ⚪ JWKS placeholder missing → the scanner flags it; an empty key set signs nothing. Intent-only,
-  same rule as above
+- ⚪ Web Bot Auth directory missing → the scanner flags it, but it only matters for a site that
+  operates a signing bot, and the scanner scores a missing directory as informational only (Step 4). Not a finding
+  for an ordinary site
 - ⚠ `og:image` absent, SVG, or 404 → blank social card. **C9** checks every sitemap URL at once
 - ⚠ `apple-touch-icon` missing — iOS home screen generic icon (`mask-icon` is not a finding; see
   `01-brand-application.md`, which drops it)
@@ -267,4 +290,4 @@ frequency table — no measurement backs an ordering, so do not present it to a 
 - ⚠ **GitHub Actions pinned to a mutable tag** (`uses: owner/action@v4`) rather than a full commit
   SHA — a tag can be repointed at new code, so tag-pinning is the supply-chain risk. This is what
   the Step 1c grep is looking for; a hit means "pin to SHA", not "add a tag"
-- ⚠ Trailing-slash drift — header/footer/body/redirects/llms.txt link to slashless paths while framework forces trailing slash → every internal click is a 308. Surfaces in GSC as "Page with redirect", "Redirect error", or chronically slow indexing of sub-pages. Run §1d, then **C4** for the live hop count.
+- ⚠ Trailing-slash drift — header/footer/body/redirects/llms.txt link to slashless paths while framework forces trailing slash → every internal click is a 308. A single 308 surfaces in GSC as "Page with redirect", or as chronically slow indexing of sub-pages. "Redirect error" is a different reason — a chain that is too long, a loop, an over-long or bad redirect URL (verified 2026-10-14 — [Page indexing report](https://support.google.com/webmasters/answer/7440203)) — and appears only if the drift stacks into one. Run §1d, then **C4** for the live hop count.

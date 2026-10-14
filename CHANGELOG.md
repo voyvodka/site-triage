@@ -9,6 +9,76 @@ gets an entry, because "checked on this date" is the product.
 
 ## [Unreleased]
 
+### Added
+
+- **AI-search visibility is measurable now, and the references say where.** Bing Webmaster Tools'
+  AI Performance (citations, cited pages, grounding queries) and Search Console's Generative AI
+  performance report (AI Overviews and AI Mode impressions, rolled out to every site on
+  2026-08-31) reverse the "no citation report" line in `04` and `15`. The Search Console report is
+  interface-only — no API search type, no bulk-export table — and `16` says so, with a first check
+  for zero AI impressions: the property's *Search generative AI* setting.
+- Release-age gates for npm, pnpm, Bun and Yarn, each in its own unit and with its real default,
+  plus npm 12 blocking dependency install scripts unless `allowScripts` allows them (`13`).
+- Cloudflare's AI bot policies (Search, Agent, Training) and Bot Preference Sync — the managed
+  robots.txt block now carries `use=reference`, and a Free zone without its own robots.txt is
+  served Cloudflare's Content Signals Policy text (`06`, `08`, C2 in `14`).
+- Robots-honouring crawlers and user-triggered fetchers are told apart, quoting each vendor:
+  ChatGPT-User, Perplexity-User, Meta-ExternalFetcher, Google-Agent and the other user-triggered
+  fetchers may not follow robots.txt, so they are no longer listed as controls (`03`, `15`).
+  Meta-WebIndexer, Amzn-SearchBot and OAI-AdsBot are added.
+- `08`: Workers Builds, `wrangler-action` v4, Worker Previews and the `cf` CLI beta as paths
+  (wrangler stays the documented one); cache Invalidate next to Purge; the redirect status codes
+  each mechanism offers; an `http://` probe in the verification block.
+
+### Changed
+
+- **Content re-verified on 2026-10-14; review due 2026-12-13.** Every file was walked against its
+  primary source; claims that could not be re-read keep their older stamp or a ⚠️.
+- Search Console's reason table (`16`) uses Google's current labels and gains the reasons it
+  lacked: Redirect error, Server error (5xx), 401, 403, other 4xx, Duplicate without user-selected
+  canonical, and the two "indexed, though" warnings.
+- Google's published timings are quoted instead of "Google publishes no timing": crawling after a
+  request takes "a few days to a few weeks", a duplicate cluster "up to two weeks".
+- satori moved from 0.33.5 to 0.56.1 with two breaking layout changes (browser `display` defaults,
+  Taffy). `07` now splits the advice: `@vercel/og` 1.0.3 still runs 0.33.5, direct satori does not.
+- isitagentready runs 22 checks in five categories and has an API; `06` names its own four signals
+  as its scope and the rest as parked.
+- GitHub Actions guidance pins every action by SHA, GitHub's own included, and covers the workflow
+  lockfile (public preview); Dependabot's default 3-day cooldown and its per-ecosystem limits are
+  documented, as is its unlisted support for pnpm 12 and npm 12.
+- Versions re-resolved on 2026-10-14: wrangler `4.151.0`, satori `0.56.1`, svelte-sitemap `4.1.2`,
+  `setup-node` v7.1.0, `codeql-action` v4.38.3, `pnpm/setup` v3.1.1 (SHAs re-resolved), pnpm
+  `12.11.2`, TruffleHog `v3.99.2`, Syft `v1.54.1`. CI's own `setup-node` pin moved to v7.1.0.
+- README leads with the one-step install, `/plugin install web-launcher --marketplace
+  voyvodka/claude-plugins` (Claude Code 2.1.275 or later).
+
+### Fixed
+
+- **SVG logos are allowed.** `Organization.logo` only has to be a Google Images format, and Google
+  Images supports SVG. Search *favicons* are the opposite — Google's list has no SVG — so the ICO
+  stays (`01`, `03`, `10`).
+- The Search Console API has more writes than `sitemaps.submit` (`sitemaps.delete`, `sites.add`,
+  `sites.delete`); they change the account, and the plugin never calls them (`12`, `16`).
+- Web Bot Auth: the directory's media type is `application/http-message-signatures-directory+json`
+  and the response must be signed; the advice to publish an empty key set is withdrawn — the
+  scanner requires a key and scores a missing directory as informational only (`06`, `09`, `13`,
+  `SKILL.md`).
+- The baseline `Permissions-Policy` shipped `browsing-topics=()`, itself deprecated — the same
+  failure the note above it was written to fix (`08`).
+- The Markdown-for-Agents middleware set `X-Markdown-Tokens`, which Cloudflare dropped on
+  2026-10-09, and lacked `Vary: Accept`, so a cache could serve markdown to browsers (`06`).
+- `llms.txt` is linked with `rel="describedby"`; `alternate` is for a page's own markdown (`03`,
+  `06`, `08`).
+- A single trailing-slash redirect reports as "Page with redirect", not "Redirect error", and
+  Googlebot follows up to ten hops rather than stopping at the first (`09`, `14`, `SKILL.md`).
+- The SoftwareApplication template is valid but not eligible for the rich result without
+  `aggregateRating` or `review`; never invent one (`03`, `09`).
+- `security.txt` `Expires` is under a year, per RFC 9116; the sitemap template drops
+  `<changefreq>` and `<priority>`, which Google ignores (`03`).
+- 302/307 are a weak canonical signal, not none (`14`); `sizes` on `<link rel=icon>` is allowed,
+  not required (`01`); theme-color is used only by installed web apps in desktop Chrome and
+  Safari 26 (`01`, `02`, `03`).
+
 ## [0.3.3] - 2026-09-25
 
 ### Added

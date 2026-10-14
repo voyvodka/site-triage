@@ -2,14 +2,20 @@
 
 *Loaded by `web-launcher` SKILL when user mentions AI search, ChatGPT, Claude Web, Perplexity, answer engines, or wants brand visibility in LLM-generated answers.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 Traditional SEO ranks your site in 10 blue links. **GEO aims to get you cited inside AI-generated answers** (ChatGPT Search, Claude Web, Perplexity, Google AI Overviews, Bing Copilot).
 
-**Set expectations before doing any of this.** GEO has no measurement surface comparable to Search
-Console: no impression count, no citation report, no ranking. Everything below is a plausible
-input, not a demonstrated lever. Say that to the user rather than promising visibility.
+**Set expectations before doing any of this.** GEO measurement exists now, but only per vendor and
+only for outcomes: Bing Webmaster Tools reports citations, cited pages and grounding queries for
+Copilot and Bing's AI summaries (public preview since 2026-02-10), and Search Console reports
+impressions — not clicks — in AI Overviews and AI Mode (all sites since 2026-08-31). ⚠️ No
+comparable report for ChatGPT, Claude or Perplexity was found in this pass (their crawler pages
+document none; not otherwise searched), and neither report says which change moved the
+number (verified 2026-10-14 — sources and detail in `15-geo-measurement.md`, "Outcome data").
+Everything below is a plausible input, not a demonstrated lever. Say that to the user rather than
+promising visibility.
 
 ## Core requirements (beyond classic SEO)
 
@@ -33,7 +39,7 @@ Content rules, when you do ship one:
 
 | Type | Status | Source |
 |---|---|---|
-| `FAQPage` | Rich result removed from Search 2026-05-07; documentation page deleted June 2026; Search Console FAQ report and Rich Results Test support withdrawn | [Google — FAQPage](https://developers.google.com/search/docs/appearance/structured-data/faqpage) (verified 2026-08-14) |
+| `FAQPage` | Rich result removed from Search 2026-05-07; Search Console FAQ report and Rich Results Test support withdrawn (verified 2026-08-14). Documentation removed in June 2026 — the old `/structured-data/faqpage` URL now 301s to the updates log, which says the rich result *"is no longer shown in Google Search results"* | [Google — Search Central updates](https://developers.google.com/search/updates#removing-faq-rich-result) (verified 2026-10-14) |
 | `HowTo` | Absent from the current Search Gallery; desktop rich result removed years earlier | [Google — Search Gallery](https://developers.google.com/search/docs/appearance/structured-data/search-gallery) (verified 2026-08-14 — absence confirmed against the live gallery) |
 
 Both remain valid schema.org vocabulary, and other consumers may parse them. That is not a reason
@@ -121,13 +127,20 @@ Quarterly, query each engine for brand + common intent:
 ## GEO-specific validator
 
 **Measure before recommending.** `15-geo-measurement.md` covers GeoDaddy — open-source, fully
-local, 22 checks, available to this plugin as an MCP tool (`analyze_url`) and as a CLI. Run it
+local, available to this plugin as an MCP tool (`analyze_url`, 22 checks) and as a CLI (`v0.8.0`,
+56 checks including an `agent-` category) (verified 2026-10-14 — check IDs counted in the tool's
+source at both tags). The two paths are not comparable; say which one produced a score. Run it
 before proposing GEO work and again after, and report the delta rather than a single number.
 
-Note the one deliberate disagreement: its `geo-schema-stacking` check wants `FAQPage`, which this
-skill drops for the reason given above. Report the lost points as a choice, not as a defect.
+Note the deliberate disagreements: `geo-schema-stacking` wants `FAQPage`, and the CLI adds
+`geo-faq-quality` (wants `FAQPage`) and `geo-howto-schema` (wants `HowTo`), both of which this
+skill drops for the reasons given above. Report the lost points as a choice, not as a defect.
 
 The hosted Cloudflare scanner https://isitagentready.com/ overlaps with agent-ready (see
-`06-agent-ready.md`) but also flags some GEO basics (llms.txt presence, markdown negotiation).
+`06-agent-ready.md`). Its own `/llms.txt` says it checks `llms.txt` and `llms-full.txt` under
+Content Accessibility, but its documented API (`POST /api/scan`) returned 22 checks on
+2026-10-14 with markdown negotiation as the only Content Accessibility check (verified
+2026-10-14 — [isitagentready.com/llms.txt](https://isitagentready.com/llms.txt) and a scan of
+`https://example.com`). Do not rely on it to confirm an `llms.txt`; fetch the file yourself.
 
 Manual test every 90 days: ask each AI engine the brand query, paste response here for gap analysis.

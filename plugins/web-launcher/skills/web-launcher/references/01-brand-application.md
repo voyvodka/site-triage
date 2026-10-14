@@ -2,7 +2,7 @@
 
 *Loaded by `web-launcher` SKILL for Mode C (brand-only) or the brand phase of Mode A/B.*
 
-> **Verified 2026-08-14 · review by 2026-10-13.** Claims that can rot carry their own date and
+> **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 
 Take a brand kit (colors, typography, logomark SVG) and apply it across existing components.
@@ -63,13 +63,17 @@ Take a brand kit (colors, typography, logomark SVG) and apply it across existing
 
 | File | Why it is in the list |
 |---|---|
-| `favicon.svg` | Primary mark, scales to every tab size. Supported by Chrome/Edge 80+, Firefox 41+, and **Safari only from 26.0** — global support ~90.5% (verified 2026-08-14 — [caniuse: SVG favicons](https://caniuse.com/link-icon-svg)) |
-| `favicon.ico` | The fallback that the ~9.5% gap needs, Safari before 26 included. ICO can hold 16/32/48 in one file (verified 2026-08-14 — [MDN: link icon sizes](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link)) |
+| `favicon.svg` | Primary mark, scales to every tab size, in browser tabs. Supported by Chrome/Edge 80+, Firefox 41+, and **Safari only from 26.0** (desktop and iOS) — global support ~92.1%; Chromium needs it served as `image/svg+xml` (verified 2026-10-14 — [caniuse: SVG favicons](https://caniuse.com/link-icon-svg), data updated 2026-10-13). **Google Search does not use it** — see `favicon.ico` |
+| `favicon.ico` | The fallback for the ~8% of browsers without SVG favicons, Safari before 26 included — and **a format Google Search can use**: its supported favicon formats are BMP, GIF, ICO, PNG, JPEG, PPM and TIFF, not SVG; square, at least 8×8, with *"larger than 48x48px"* recommended. Google reads `rel="icon"`, `shortcut icon`, `apple-touch-icon` and `apple-touch-icon-precomposed` (verified 2026-10-14 — [Google: favicon in Search results](https://developers.google.com/search/docs/appearance/favicon-in-search), last updated 2026-08-28). The 180×180 apple-touch PNG below already meets that recommendation; a 16/32/48 ICO alone does not. See `10-brand-serp.md` for the rest of the result-page brand surface. ICO can hold 16/32/48 in one file (verified 2026-10-14 — [MDN: link `sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link#sizes)) |
 | `apple-touch-icon.png` at 180×180 | iOS home-screen icon. **Must be PNG** — Apple's web-content docs specify a PNG file and never an SVG (verified 2026-08-14 — [Configuring Web Applications](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)). Give it an opaque background; a transparent dark mark can disappear on the home screen. ⚠️ The specific claim that iOS composites transparency to *black* is widely repeated but has no primary source — the safe practice stands either way |
 | `site.webmanifest` icons | Install/launch surfaces — see below |
 
-`sizes` is required whenever `rel` is `icon` or a non-standard relation such as `apple-touch-icon`;
-`sizes="any"` is the correct value for a vector file (verified 2026-08-14 — MDN, link element).
+`sizes` is **allowed only** when `rel` is `icon` or a non-standard relation such as
+`apple-touch-icon`, and it is **optional** there — its value *"if present, is merely advisory"* and
+helps the browser pick among several icons. Earlier versions of this file called it required; that
+misread MDN's *"must be present only if"*. When you do set it, `sizes="any"` is the value for a
+vector file (verified 2026-10-14 — [MDN: link `sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link#sizes);
+[WHATWG HTML: link `sizes`](https://html.spec.whatwg.org/multipage/semantics.html#attr-link-sizes)).
 
 ⚠️ **Generate only what you list.** The old 16/32/48/180/192/512 PNG spread predates SVG favicon
 support and mostly ships dead bytes. `rsvg-convert`, `resvg` or equivalent still handles the two
@@ -117,12 +121,20 @@ It is what install prompts in practice expect; do not present it as a requiremen
 ### `theme-color` — set it, do not depend on it
 
 Support is uneven enough that it is a nice-to-have, not part of the brand's visual contract
-(verified 2026-08-14 — [caniuse: theme-color](https://caniuse.com/meta-theme-color), ~75% global):
+(verified 2026-10-14 — [caniuse: theme-color](https://caniuse.com/meta-theme-color), ~75% global,
+almost all of it partial; and [MDN browser-compat-data](https://github.com/mdn/browser-compat-data/blob/main/html/elements/meta.json),
+`html.elements.meta.name.theme-color` — the two disagree in places, noted below):
 
-- **Chrome/Chromium**: partial from 73 — desktop applies it to installed PWAs only, Android to the toolbar
-- **Safari**: 15 through 18.7 full; **26.0+ only partial** — the meta tag no longer drives the
-  browser chrome the way it did
+- **Chrome desktop**: partial from 73 — **installed PWAs only**; a normal tab ignores it
+- **Chrome Android**: the toolbar. BCD lists full support from 92; caniuse still notes that with
+  system dark mode on it applies only to installed PWAs and trusted web activities
+- **Safari desktop**: 15 through 18.x full; **26.0+ installed web apps only**
+- **Safari iOS 26+**: BCD says installed web apps only; caniuse says it *"does not actually use
+  the color anywhere"*. Either way, not in a normal tab
 - **Firefox**: no support, desktop or Android
+
+So in an ordinary browser tab on current desktop Chrome, desktop Safari and iOS Safari, the tag
+does nothing visible.
 
 The `<meta>` value overrides `theme_color` in the manifest. Never let a design depend on the
 browser chrome picking up a brand color.
@@ -155,6 +167,7 @@ SVG logotypes using `<text font-family="...">` depend on the viewer having the f
 - [ ] Font stack matches brand kit in all declarations
 - [ ] Favicon renders at 16px distinguishably from neighboring browser tabs
 - [ ] `favicon.svg` **and** `favicon.ico` both present — the SVG alone leaves older Safari blank
+      and gives Google Search nothing it can use (it reads ICO/PNG, not SVG)
 - [ ] `apple-touch-icon.png` is a 180×180 **PNG** with an opaque background, not the SVG
 - [ ] `site.webmanifest` linked, with a `maskable` icon and `theme_color` matching the meta tag
 - [ ] OG cover regenerated with new brand

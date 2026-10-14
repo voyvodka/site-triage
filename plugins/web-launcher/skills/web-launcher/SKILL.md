@@ -22,7 +22,7 @@ You are a launch + SEO + supply-chain specialist for static / marketing / docs s
 
 ## Freshness
 
-**Content verified: 2026-08-14. Review due: 2026-10-13 (60 days).**
+**Content verified: 2026-10-14. Review due: 2026-12-13 (60 days).**
 
 This field moves fast — in the four months before that audit, a Google rich result was withdrawn, two crawler tokens were retired, and three recommended commands stopped working. Stale advice here is worse than none.
 
@@ -68,7 +68,7 @@ Then write a **severity-ranked gap report**:
 - 🔴 **Critical**: missing `lang`, no canonical, no robots.txt, broken sitemap, no HTTPS, active CVE, committed secret, no branch protection
 - 🟡 **Recommended**: missing Organization schema (= no logo in Google SERP), missing og:image, incomplete meta, no AI crawler declarations, no Dependabot/Renovate, no CI audit gate, unpinned third-party Actions (incl. `@latest` lhci/Lighthouse — non-deterministic CI), no `Link:` headers
 - 🟢 **Nice**: llms.txt, humans.txt, apple-touch-icon, HSTS preload, additional schema types (Article/Breadcrumb/Product), Markdown-for-Agents, SBOM, socket.dev, pre-commit secret scan
-- ⚪ **Intent only — no known technical effect** (say so when proposing): `Content-Signal`, `Content-Usage` (AIPREF), empty Web Bot Auth JWKS. Free to add, but never present them as protection or as a ranking factor — see `06-agent-ready.md`
+- ⚪ **Intent only — no known technical effect** (say so when proposing): `Content-Signal`, `Content-Usage` (AIPREF). Free to add, but never present them as protection or as a ranking factor — see `06-agent-ready.md`
 
 Get user approval on the plan before executing. Work in phases (brand → discoverability → deploy →
 harden → validate), report back between phases. **Mode C is the brand phase and nothing else** —
@@ -123,7 +123,7 @@ These tripped past launches. Apply defensively without needing to open a referen
 - **Email in security.txt** — verify address actually exists before publishing (no MX on new domains = bounces).
 - **Committed secrets** — rotating the credential comes first, BEFORE rewriting git history. Then `git filter-repo --path <file> --invert-paths` + force-push. Never just `git rm` — old commits retain it.
 - **Running both Dependabot AND Renovate** on the same repo — pick one; otherwise duplicate PR flood.
-- **Trailing-slash drift** — when framework config sets `trailingSlash: 'always'` (Astro) or equivalent (Next.js `trailingSlash: true`, Hugo `uglyURLs=false`), *every* internal link must include the slash. Header nav, footer, body content, framework `redirects` map targets, and `public/llms.txt` are the common offenders. Each slashless internal link triggers a 308 (or meta-refresh + 308 = 2-hop) redirect — wasting crawl budget and surfacing in GSC as "Page with redirect" / "Redirect error" / "Alternate page with canonical". Audit with `grep -rE 'href="/[^"#]*[^/"]"' src/` plus the redirect-chain probe in `11-validation-toolkit.md` §11.1. Reverse drift (`trailingSlash: 'never'` + trailing-slash internal links) is equally bad — match the framework setting either way.
+- **Trailing-slash drift** — when framework config sets `trailingSlash: 'always'` (Astro) or equivalent (Next.js `trailingSlash: true`, Hugo `uglyURLs=false`), *every* internal link must include the slash. Header nav, footer, body content, framework `redirects` map targets, and `public/llms.txt` are the common offenders. Each slashless internal link triggers a 308 (or meta-refresh + 308 = 2-hop) redirect — wasting crawl budget and surfacing in GSC as "Page with redirect" (a chain that loops or runs too long becomes "Redirect error"). Audit with `grep -rE 'href="/[^"#]*[^/"]"' src/` plus the redirect-chain probe in `11-validation-toolkit.md` §11.1. Reverse drift (`trailingSlash: 'never'` + trailing-slash internal links) is equally bad — match the framework setting either way.
 
 ## Output conventions
 
