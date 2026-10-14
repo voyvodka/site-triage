@@ -26,6 +26,9 @@ gets an entry, because "checked on this date" is the product.
   ChatGPT-User, Perplexity-User, Meta-ExternalFetcher, Google-Agent and the other user-triggered
   fetchers may not follow robots.txt, so they are no longer listed as controls (`03`, `15`).
   Meta-WebIndexer, Amzn-SearchBot and OAI-AdsBot are added.
+- The live probes in `08`, `09` and `11` print a verdict for every check: a status and `location`
+  per redirect, `000`/`NO RESPONSE` for a host that did not answer, `MISSING:` per absent security
+  header — silence no longer reads as a pass.
 - `08`: Workers Builds, `wrangler-action` v4, Worker Previews and the `cf` CLI beta as paths
   (wrangler stays the documented one); cache Invalidate next to Purge; the redirect status codes
   each mechanism offers; an `http://` probe in the verification block.
@@ -36,19 +39,30 @@ gets an entry, because "checked on this date" is the product.
   primary source; claims that could not be re-read keep their older stamp or a ⚠️.
 - Search Console's reason table (`16`) uses Google's current labels and gains the reasons it
   lacked: Redirect error, Server error (5xx), 401, 403, other 4xx, Duplicate without user-selected
-  canonical, and the two "indexed, though" warnings.
+  canonical, Discovered – currently not indexed, and the two warnings, "Indexed, though blocked by
+  robots.txt" and "Page indexed without content".
 - Google's published timings are quoted instead of "Google publishes no timing": crawling after a
   request takes "a few days to a few weeks", a duplicate cluster "up to two weeks".
-- satori moved from 0.33.5 to 0.56.1 with two breaking layout changes (browser `display` defaults,
-  Taffy). `07` now splits the advice: `@vercel/og` 1.0.3 still runs 0.33.5, direct satori does not.
+- satori moved from 0.33.5 to 0.56.1 with three breaking layout changes, none in the release notes:
+  Taffy, browser `display` defaults, and CSS initial values for `position`, `box-sizing` and
+  borders (a padded card overflows). `07` now splits the advice: `@vercel/og` 1.0.3 still runs 0.33.5, direct satori does not.
 - isitagentready runs 22 checks in five categories and has an API; `06` names its own four signals
   as its scope and the rest as parked.
 - GitHub Actions guidance pins every action by SHA, GitHub's own included, and covers the workflow
-  lockfile (public preview); Dependabot's default 3-day cooldown and its per-ecosystem limits are
-  documented, as is its unlisted support for pnpm 12 and npm 12.
+  lockfile (public preview). The pin check in `13` §13.11 skips only workflows the lockfile lists,
+  reads quoted, CRLF and flow-style refs, and ends in an OK/FAIL line; `09` points at it instead of
+  carrying a copy. Dependabot's default 3-day cooldown and its per-ecosystem limits are
+  documented, and so is the gap: pnpm 12 and npm 12 sit outside the versions it documents (pnpm v7–v10,
+  npm v7–v11).
 - Versions re-resolved on 2026-10-14: wrangler `4.151.0`, satori `0.56.1`, svelte-sitemap `4.1.2`,
   `setup-node` v7.1.0, `codeql-action` v4.38.3, `pnpm/setup` v3.1.1 (SHAs re-resolved), pnpm
   `12.11.2`, TruffleHog `v3.99.2`, Syft `v1.54.1`. CI's own `setup-node` pin moved to v7.1.0.
+- `08` and `13` re-read against the vendors: Cloudflare's Pages docs now steer new projects to
+  Workers and C3 creates a Workers project by default (Pages is still not deprecated);
+  `--use-keyring` keeps only the encryption key in the keychain; Automatic SSL/TLS is the default
+  mode; Secret Protection cannot be bought for a personal private repository; Node 20 is gone from
+  GitHub-hosted runners; npm trusted publishing expires unvalidated configurations after 48 hours
+  and rejects `issue_comment` tokens.
 - README leads with the one-step install, `/plugin install web-launcher --marketplace
   voyvodka/claude-plugins` (Claude Code 2.1.275 or later).
 

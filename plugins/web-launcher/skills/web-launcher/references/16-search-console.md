@@ -151,7 +151,7 @@ report against them loosely, since the interface is localized (verified 2026-10-
 
 | What Google reports | Read it as | Where the cause lives |
 |---|---|---|
-| Page with redirect | `verdict: NEUTRAL`, `googleCanonical != inspectionUrl`, fetch redirects | Usually **expected** — the redirecting twin of a canonical URL. A single `301`/`308` lands here, never under *Redirect error*. A defect only when the target is not 200 (`14-diagnostic-checks.md` C1), the redirect is temporary (C3), or it takes more than one hop (C4) |
+| Page with redirect | `verdict: NEUTRAL`, `googleCanonical != inspectionUrl`, fetch redirects | Usually **expected** — the redirecting twin of a canonical URL. A single valid `301`/`308` lands here, never under *Redirect error* — one redirect to a bad, empty or over-long URL is a *Redirect error*. A defect only when the target is not 200 (`14-diagnostic-checks.md` C1), the redirect is temporary (C3), or it takes more than one hop (C4) |
 | Redirect error | `pageFetchState: REDIRECT_ERROR` | Google lists four causes: a chain that was too long, a loop, a redirect URL that exceeded the maximum URL length, a bad or empty URL in the chain. Measure the chain with C4 and where it ends with C1 |
 | Not found (404) | `pageFetchState: NOT_FOUND` | A redirect issued before the target was resolved (C1), a sitemap listing dead URLs (C5), or an old external link. Trace it; do not delete the URL and call it fixed |
 | Soft 404 | `pageFetchState: SOFT_404` | A thin or empty page returning 200 (C7) |
@@ -247,7 +247,9 @@ Search, image uploads); the API documents no such split (verified 2026-10-14 —
 [Performance report](https://support.google.com/webmasters/answer/7576553)).
 
 **Zero AI impressions → check the control before the content.** Settings → *Search generative AI*
-is a per-property control: Include (the default), Exclude, or inherit from the parent property.
+is a per-property control: Include, Exclude, or inherit from the parent property. Include is
+*"the default control for all properties"*, but inherit is *"the default if your property has a
+parent property"* — so a child property follows its parent until someone overrides it.
 Exclude removes the site's links and content from AI Overviews, AI Mode and Discover's generative
 features. Google's help gives two reasons the report can be empty — too few impressions, or the
 site excluded through this control — so read the setting, and on a URL-prefix property its

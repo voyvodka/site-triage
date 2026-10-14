@@ -59,8 +59,10 @@ produced the score — the two are not comparable.
 
 ## Scoring model — read this before quoting a number
 
-- Severity → points: **Critical 10 · Medium 5 · Minor 2**. Pass earns full, **warn earns half**,
-  fail earns zero.
+- Severity → points: **Critical 10 · Medium 5 · Minor 2**. Pass earns full, **warn earns half,
+  rounded down** — the points are integers, so a 5-point Warn earns 2 and a 2-point Warn earns 1 —
+  and fail earns zero (verified 2026-10-14 — `Status::Warn => pts / 2` on `u32` in
+  `src/scoring.rs` at `v0.8.0`).
 - Category score = points earned ÷ points possible × 100.
 - Overall = mean of the category scores, so it depends on the path: **MCP `0.2.2`** averages
   Technical, Content, GEO; **CLI `v0.8.0`** averages Technical, Content, GEO **and Agent**. Either
@@ -71,7 +73,7 @@ produced the score — the two are not comparable.
 The categories: `tech-` (meta, headings, HTTPS, redirects, robots, sitemap, broken links), `cont-`
 (heading structure, alt text, JSON-LD, semantic HTML), `geo-` (listicle formatting, AI bot access,
 schema stacking — and in `v0.8.0` also citations, entities, freshness, FAQ/HowTo, `llms.txt`,
-query-shaped content), `agent-` (`v0.8.0` only: Link headers, markdown negotiation, Content
+AI-blocking meta/header directives, query-shaped content), `agent-` (`v0.8.0` only: Link headers, markdown negotiation, Content
 Signals, Web Bot Auth, MCP server card, OAuth discovery, commerce protocols — the ground
 `06-agent-ready.md` covers), `perf-` (Core Web Vitals, `--vitals` only).
 
@@ -84,9 +86,11 @@ choose.
 | Check | GeoDaddy expects | This skill's position |
 |---|---|---|
 | `geo-schema-stacking` (Medium, 5 pts) | `Article` **+ `ItemList` + `FAQPage`** all present | `FAQPage` was dropped: Google removed the rich result 2026-05-07 and deleted the documentation page. See `04-geo.md`. **Following this skill costs points here.** |
-| `geo-faq-quality` (Minor, 2 pts — `v0.8.0` only) | `FAQPage` JSON-LD with 40–60-word answers | Same divergence. With no `FAQPage` the check returns **Warn**, so the cost is half its points, not all of them (verified 2026-10-14 — `src/analyzers/geo_citations.rs`, `src/scoring.rs` at `v0.8.0`) |
-| `geo-howto-schema` (Medium, 5 pts — `v0.8.0` only) | `HowTo` JSON-LD; its recommendation claims HowTo *"enables rich results"* | `HowTo` is absent from Google's Search Gallery (see `04-geo.md`). Absence returns **Warn** — half the points (verified 2026-10-14 — `src/analyzers/geo_freshness.rs` at `v0.8.0`). Do not add markup for steps a page does not have |
+| `geo-faq-quality` (Minor, 2 pts — `v0.8.0` only) | `FAQPage` JSON-LD with 40–60-word answers | Same divergence. With no `FAQPage` the check returns **Warn**, so it earns 1 of its 2 points, not zero (verified 2026-10-14 — `src/analyzers/geo_citations.rs`, `src/scoring.rs` at `v0.8.0`) |
+| `geo-howto-schema` (Medium, 5 pts — `v0.8.0` only) | `HowTo` JSON-LD; its recommendation claims HowTo *"enables rich results"* | `HowTo` is absent from Google's Search Gallery (see `04-geo.md`). Absence returns **Warn** — 2 of its 5 points, since a Warn's half is rounded down (verified 2026-10-14 — `src/analyzers/geo_freshness.rs`, `src/scoring.rs` at `v0.8.0`). Do not add markup for steps a page does not have |
 | `geo-ai-bot-*` (Critical, 10 pts each) | `GPTBot`, `ClaudeBot`, `PerplexityBot`, `GoogleOther`, `Bytespider`, `CCBot` not blocked | Right that a catch-all `Disallow` is expensive — six critical checks, 60 points. **But five of the six tokens it checks — all but `PerplexityBot` — are training or generic crawlers, not the retrieval crawlers that decide citation** (verified 2026-10-14 — the same six tokens in `src/analyzers/geo.rs` at both `v0.2.2` and `v0.8.0`). See below |
+| `geo-llms-txt` (Critical, 10 pts — `v0.8.0` only) | A `/llms.txt` with an H1 and at least 50 bytes; a missing file — any non-2xx response reads as an empty body — **fails**, losing all 10 points | Ship it, as `04-geo.md` says — but as cheap agent infrastructure, not a ranking lever: Google says it does not affect Search visibility (see `03-discoverability-classic.md`). The divergence is in weight: GeoDaddy makes it as heavy as an HTTPS failure (verified 2026-10-14 — `src/analyzers/geo_llms.rs`, `fetch_text_capped` in `src/crawling.rs`, `src/scoring.rs` at `v0.8.0`) |
+| `geo-ai-meta-directives`, `geo-ai-header-directives` (Medium, 5 pts each — `v0.8.0` only) | No `noai`, `noimageai` or `nosnippet` in `<meta name="robots">` / `X-Robots-Tag`; any of them returns **Warn**, earning 2 of 5 (verified 2026-10-14 — `src/analyzers/geo_directives.rs` at `v0.8.0`) | Partly right. Google says `nosnippet` *"will also prevent the content from being used as a direct input for AI Overviews and AI Mode"* — but it also removes the classic text snippet, so it is not an AI-only control. `noai` and `noimageai` appear nowhere on Google's robots meta page; treat them as an unsourced convention, not a control (verified 2026-10-14 — [Google: robots meta tag](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag), last updated 2026-03-24) |
 | `geo-listicle` (Medium) | Numbered headings, "Top N" patterns, ordered lists, comparison tables | Reasonable as a formatting heuristic. It scores *shape*, not usefulness — do not restructure good prose into a listicle purely for this |
 | `agent-*` (`v0.8.0` only; 16 checks, 2–5 pts each) | Link headers, markdown negotiation, MCP server card, Content Signals, Web Bot Auth, OAuth discovery, A2A card, WebMCP, x402/MPP/UCP/ACP/AP2 | `06-agent-ready.md` rates most of these as declarations with no measured effect, and WebMCP and the commerce protocols are out of this plugin's scope. Report the Agent score; do not build surfaces to raise it |
 
@@ -135,30 +139,50 @@ against each vendor's page:
 |---|---|---|---|
 | OpenAI | `OAI-SearchBot` | `ChatGPT-User` — *"robots.txt rules may not apply"* | [OpenAI crawlers](https://developers.openai.com/api/docs/bots) |
 | Anthropic | `Claude-SearchBot` | `Claude-User` — the article states Anthropic's bots *"respect 'do not crawl' signals by honoring industry standard directives in robots.txt"*, with no exception for `Claude-User` | [Anthropic article](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler) |
-| Perplexity | `PerplexityBot` — *"designed to surface and link websites in search results on Perplexity"* | `Perplexity-User` — *"this fetcher generally ignores robots.txt rules"* | [Perplexity Crawlers](https://docs.perplexity.ai/docs/resources/perplexity-crawlers) (the old `/guides/bots` URL 301s here) |
-| Meta | `Meta-WebIndexer` — *"navigates the web to improve Meta AI search result quality"*; allowing it *"helps us cite and link to your content in Meta AI's responses"* | `Meta-ExternalFetcher` — *"this crawler may bypass robots.txt rules"* | [Meta Web Crawlers](https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers) |
-| Google | `Googlebot` — the common-crawlers page lists no separate AI-search token | `Google-Agent` — *"used by agents hosted on Google infrastructure to navigate the web and perform actions upon user request"*, experimenting with Web Bot Auth as `https://agent.bot.goog` — and the other user-triggered fetchers, which *"generally ignore robots.txt rules"* | [Google user-triggered fetchers](https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers) |
+| Perplexity | `PerplexityBot` — *"designed to surface and link websites in search results on Perplexity"* | `Perplexity-User` — *"this fetcher generally ignores robots.txt rules"* | [Perplexity Crawlers](https://docs.perplexity.ai/docs/resources/perplexity-crawlers) (the old `/guides/bots` URL 308s here) |
+| Meta | `Meta-WebIndexer` — *"navigates the web to improve Meta AI search result quality"*; allowing it *"helps us cite and link to your content in Meta AI's responses"* | `Meta-ExternalFetcher` — *"this crawler may bypass robots.txt rules"* | [Meta Web Crawlers](https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers) (updated 2026-05-21) |
+| Amazon | `Amzn-SearchBot` — *"your content is eligible to appear in search experiences such as Alexa"*; *"does not crawl content for generative AI model training"*. If `robots.txt` does not name it but allows other search bots, it follows *"the robots.txt directives given to other search bots"* | `Amzn-User` — *"it may not follow all robots.txt directives"* | [Amazonbot](https://developer.amazon.com/amazonbot) (no last-updated date on the page) |
+| Google | `Googlebot` — the common-crawlers page lists no separate AI-search token | Google's user-triggered fetchers, which *"generally ignore robots.txt rules"* — `Google-Agent` among them, *"used by agents hosted on Google infrastructure to navigate the web and perform actions upon user request"* and experimenting with Web Bot Auth as `https://agent.bot.goog` | [Google user-triggered fetchers](https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers) (last updated 2026-08-19) |
 
-Two consequences. Blocking a user-triggered fetcher in `robots.txt` states a preference that four
-of these five vendors say they may not honour — enforcement needs a WAF rule, not a `Disallow`. And
-allowing it is not the same as being citable: citation in search answers runs through the
-crawler in the second column.
+Two consequences. Blocking a user-triggered fetcher in `robots.txt` states a preference that five
+of these six vendors say they may not honour — Anthropic is the exception — so enforcement needs a
+WAF rule, not a `Disallow`. And allowing it is not the same as being citable: citation in search
+answers runs through the crawler in the second column. The one vendor that ties its fetcher to
+visibility is Anthropic: *"Disabling Claude-User on your site prevents our system from retrieving
+your content in response to a user query, which may reduce your site's visibility for
+user-directed web search."*
 
 Two things follow, and GeoDaddy gets both wrong:
 
 - **`ClaudeBot` is the training crawler, not the retrieval one.** Allowing it does not make a site
-  citable in Claude; that is `Claude-SearchBot` and `Claude-User`. A site that blocks `ClaudeBot`
-  and allows those two is opted out of training and fully available for citation — GeoDaddy scores
+  citable in Claude; that is `Claude-SearchBot`, plus `Claude-User`, which Anthropic says affects
+  *"visibility for user-directed web search"* (quoted above). A site that blocks `ClaudeBot` and
+  allows those two is opted out of training and fully available for citation — GeoDaddy scores
   it as a failure anyway.
 - **`GoogleOther` is not a training control at all**, so blocking it neither protects the site from
-  training use nor costs it Search visibility. The Gemini training opt-out is `Google-Extended`,
-  which GeoDaddy does not check.
+  training use nor costs it Search visibility. The Gemini opt-out is `Google-Extended` — training
+  *and* grounding — which GeoDaddy does not check.
 
-A site that allows retrieval crawlers (`OAI-SearchBot`, `ChatGPT-User`, `Claude-SearchBot`,
-`Claude-User`, `PerplexityBot`, `Meta-WebIndexer`) while blocking training crawlers (`GPTBot`, `ClaudeBot`, `CCBot`,
-`Google-Extended`, `Bytespider`) holds a coherent position: *cite me, do not train on me.* GeoDaddy
-scores exactly that as multiple critical failures, because it checks the training tokens and calls
-them citation blockers.
+A site that allows the search crawlers (`OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`,
+`Meta-WebIndexer`, `Amzn-SearchBot`) and `Claude-User`, while blocking training crawlers
+(`GPTBot`, `ClaudeBot`, `CCBot`, `Bytespider`), holds a coherent position: *cite me, do not train
+on me.* GeoDaddy scores exactly that as multiple critical failures, because it checks the training
+tokens and calls them citation blockers. `ChatGPT-User` is left off the allow list on purpose:
+OpenAI says it is *"not used to determine whether content may appear in Search"* and that
+`robots.txt` rules *"may not apply"* to it, so a rule for it is neither a citation lever nor a
+control. Two training-side tokens cost more than training when blocked:
+
+- **`Google-Extended`** governs training *and* grounding — Google's page says it manages use
+  *"for training future generations of Gemini models"* and *"for grounding (providing content from
+  the Google Search index to the model at prompt time…) in Gemini Apps and Grounding with Google
+  Search on Vertex AI"* (verified 2026-10-14 — [Google's common crawlers](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers),
+  last updated 2026-07-14). Blocking it also removes the site from Gemini's grounded answers, a
+  citation surface; it does not affect Google Search.
+- **`Meta-ExternalAgent`** *"crawls the web for use cases such as training foundation AI models or
+  improving products by indexing content directly"* (verified 2026-10-14 — [Meta Web
+  Crawlers](https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers)). It is
+  mixed-purpose: blocking it opts out of Meta's training and of that indexing; Meta AI search
+  citation runs through `Meta-WebIndexer`.
 
 **What to do:** report the lost points, state that the failures are a stated policy rather than a
 misconfiguration, and then check the tokens that actually decide citation — none of which GeoDaddy
@@ -172,7 +196,7 @@ robots=$(mktemp)
 if ! curl -sf --max-time 20 "https://DOMAIN/robots.txt" > "$robots"; then
   echo "?    robots.txt unreachable or not 200 — check did not run"
 else
-  for bot in OAI-SearchBot ChatGPT-User Claude-SearchBot Claude-User PerplexityBot Meta-WebIndexer; do
+  for bot in OAI-SearchBot Claude-SearchBot Claude-User PerplexityBot Meta-WebIndexer Amzn-SearchBot; do
     awk -v bot="$bot" '
       BEGIN { b = tolower(bot) }
       { line = $0; sub(/#.*/, "", line); gsub(/\r/, "", line); l = tolower(line) }
@@ -196,11 +220,14 @@ fi
 rm -f "$robots"
 ```
 
-`OK` on all six means no root-level `Disallow` reaches the citation crawlers, regardless of the
-score. Path-level rules (`Disallow: /private/`) are not judged here — they block pages, not the
-site. A `FAIL` on `ChatGPT-User` reports the site's stated preference, not access: OpenAI says
-`robots.txt` rules may not apply to it (table above). Report this result, not the score, when the
-user asks whether they are visible to AI search. Only recommend unblocking training crawlers
+`OK` on all six means no root-level `Disallow` reaches the search crawlers or `Claude-User`,
+regardless of the score. Path-level rules (`Disallow: /private/`) are not judged here — they block
+pages, not the site. `ChatGPT-User` is not in the loop: a rule for it is neither citation nor
+control (see above). `Amzn-SearchBot` is resolved like the rest, but Amazon says an unnamed
+`Amzn-SearchBot` follows the rules *"given to other search bots"*, not necessarily `*` — when it
+reports `"*" group`, also read the groups the site gives other search bots (Amazon names none;
+`Googlebot` and `Bingbot` are the likely ones). Report this result, not the
+score, when the user asks whether they are visible to AI search. Only recommend unblocking training crawlers
 if the user actually wants to be trained on, and say that is what the change means.
 
 Bytespider is a related case: GeoDaddy treats blocking it as critical, while `03-discoverability-classic.md`
@@ -230,9 +257,10 @@ phrases the AI used when retrieving content that was referenced in AI-generated 
 trends over time. It does not
 measure ranking, placement or a page's role in an answer, and the announcement mentions no clicks
 or traffic. Grounding queries are *"a sample of overall citation activity"*, not a full log
-(verified 2026-10-14 — [Introducing AI Performance in Bing Webmaster Tools Public Preview](https://blogs.bing.com/webmaster/February-2026/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview)).
-Preview additions since: Intents, Topics, Citation Share (your share of all citations shown) and
-Compare (verified 2026-10-14 — [New AI Visibility Insights in Bing Webmaster Tools](https://blogs.bing.com/search/June-2026/New-AI-Visibility-Insights-in-Bing-Webmaster-Tools-Intents-Topics-Citation-Share-Compare),
+(verified 2026-10-14 — [Introducing AI Performance in Bing Webmaster Tools Public Preview](https://blogs.bing.com/webmaster/2026/2/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview/)).
+Preview additions since: Intents, Topics, Citation Share (your site's percentage of all citations
+shown across all sites for the same grounding query — per query, not site-wide) and Compare
+(verified 2026-10-14 — [New AI Visibility Insights in Bing Webmaster Tools](https://blogs.bing.com/search/2026/6/New-AI-Visibility-Insights-in-Bing-Webmaster-Tools-Intents-Topics-Citation-Share-Compare/),
 2026-06-16), and **Topics Portfolio (beta)**, which groups grounding queries into themes with
 demand and competition, and appears only *"If there is sufficient data for your site"* — small
 sites may see nothing (verified 2026-10-14 — [Introducing Topics Portfolio (Beta) in AI Performance](https://blogs.bing.com/webmaster/2026/10/introducing-topics-portfolio-beta-in-ai-performance/),

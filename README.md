@@ -37,7 +37,7 @@ checks here are runnable commands with one-line verdicts, not prose.
 /plugin install web-launcher --marketplace voyvodka/claude-plugins
 ```
 
-That adds the catalog and installs the plugin in one step, on Claude Code 2.1.275 or later (from the
+That adds the catalog and installs the plugin in one command, on Claude Code 2.1.275 or later (from the
 shell, `claude plugin install web-launcher --marketplace voyvodka/claude-plugins` needs 2.1.292).
 On an older version, register the catalog first:
 

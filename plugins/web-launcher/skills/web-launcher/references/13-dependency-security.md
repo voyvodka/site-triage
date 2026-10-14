@@ -91,7 +91,7 @@ updates:
 > - `include` / `exclude` take up to 150 entries each, wildcards allowed; `exclude` wins.
 >
 > **Supported package-manager versions** (verified 2026-10-14 —
-> [supported ecosystems](https://docs.github.com/en/code-security/dependabot/ecosystems-supported-by-dependabot/supported-ecosystems-and-repositories)):
+> [supported ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)):
 > npm v7–v11, **pnpm v7–v10**. ⚠️ The pnpm 12 this file pins in §13.3 and npm 12 are both outside
 > the documented range. Nothing on the page says what Dependabot does with a newer lockfile; if
 > its PRs fail or rewrite `pnpm-lock.yaml` oddly, that gap is the first suspect, and Renovate is the
@@ -149,7 +149,8 @@ labelled "Security and quality"; an older guide saying `Settings → Security` o
   Cloud with Enterprise Managed Users, or on Enterprise Server (verified 2026-10-14 —
   [about secret scanning](https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning))
 - ✅ **Secret scanning push protection** — blocks the push, not the commit, when a supported secret
-  is detected. Two distinct things share the name: *push protection for users* is *on by default*
+  is detected — and not only `git push`: it also covers "Commits made in the GitHub UI", "File
+  uploads to a repository on GitHub" and "Requests to the REST API". Two distinct things share the name: *push protection for users* is *on by default*
   and stops any user pushing a secret to a **public** repo; *push protection for the repository* is
   **off by default** and must be switched on by an admin/owner (verified 2026-10-14 —
   [about push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/about-push-protection))
@@ -376,10 +377,14 @@ Attach to GitHub Release artifacts.
   conditions worth knowing (verified 2026-10-14 —
   [generating provenance statements](https://docs.npmjs.com/generating-provenance-statements), last edited 2026-05-04):
   the build must run on a cloud-hosted runner of a supported provider — **GitHub Actions or GitLab
-  CI/CD, those two only** — and `package.json` must point at a public `repository`. If you publish
-  via **trusted publishing**, provenance is generated automatically and the `--provenance` flag is
-  not needed; that is now the better path, since it also removes the long-lived npm token from CI.
-  Consumers verify with `npm audit signatures`.
+  CI/CD, those two only** — and `package.json` must point at a public `repository`. **Trusted
+  publishing** from those same two providers generates provenance automatically: "When you publish
+  using trusted publishing from GitHub Actions or GitLab CI/CD, npm automatically generates and
+  publishes provenance attestations", no `--provenance` flag needed. Not from CircleCI, and not
+  from a private repository even when the package is public (verified 2026-10-14 —
+  [trusted publishers](https://docs.npmjs.com/trusted-publishers), last edited 2026-10-06).
+  Trusted publishing is the better path either way, since it removes the long-lived npm token
+  from CI. Consumers verify with `npm audit signatures`.
 - **npm trusted publishing** (verified 2026-10-14 —
   [trusted publishers](https://docs.npmjs.com/trusted-publishers), page last edited 2026-10-06):
   supported on GitHub Actions (GitHub-hosted runners), GitLab CI/CD (GitLab.com shared runners) and,
@@ -390,9 +395,9 @@ Attach to GitHub Release artifacts.
   a new trusted-publisher configuration **expires unless its first publish succeeds within 48
   hours** (the docs say "2 days") — create it right before the release, not weeks ahead; and npm
   now **rejects tokens from `issue_comment` workflows**, alongside the existing
-  `pull_request_target` restriction — publish from `push`, `release` or `workflow_dispatch`. Note
-  the provenance page above still names only GitHub Actions and GitLab for provenance (last edited
-  2026-05-04); do not assume a CircleCI publish carries provenance without checking.
+  `pull_request_target` restriction — publish from `push`, `release` or `workflow_dispatch`. A
+  CircleCI publish carries no provenance: "Provenance generation is not currently supported for
+  CircleCI" (same page).
 - **Lockfile discipline** — always commit, always `--frozen-lockfile` / `--immutable` in CI (fails if lockfile drifts)
 - **Release-age gates and install scripts** — every major package manager can now refuse versions
   younger than a set age, which is the cheapest defence against a compromised release that gets
@@ -404,7 +409,7 @@ Attach to GitHub Release artifacts.
   | npm | `min-release-age` (`.npmrc`) | **days** | off (`null`) — [npm config](https://docs.npmjs.com/cli/v12/using-npm/config) |
   | pnpm | `minimumReleaseAge` (`pnpm-workspace.yaml`) | **minutes** | **`1440` (1 day) since v11**, `0` before; added in 10.16.0 — [pnpm settings](https://pnpm.io/settings/dependency-resolution#minimumreleaseage) |
   | Bun | `install.minimumReleaseAge` (`bunfig.toml`) | **seconds** | off (`null`) — [bunfig](https://bun.com/docs/runtime/bunfig) |
-  | Yarn (Berry) | `npmMinimalAgeGate` (`.yarnrc.yml`) | duration string (`1d`, `3h`, `1w`; bare number = minutes) | **`1d`** (in released 4.x, e.g. 4.18.1) — [yarnrc](https://yarnpkg.com/configuration/yarnrc) |
+  | Yarn (Berry) | `npmMinimalAgeGate` (`.yarnrc.yml`) | duration string (`1d`, `3h`, `1w`; bare number = minutes) | **`1d` since 4.15.0** (2026-05-19), `0m` in 4.11.0–4.14.1; added in 4.10.0 as a plain minute count, default `0` — `packages/plugin-npm/sources/index.ts` at each `@yarnpkg/cli/<version>` tag, [yarnrc](https://yarnpkg.com/configuration/yarnrc) |
 
   A week is `min-release-age=7` on npm, `minimumReleaseAge: 10080` on pnpm,
   `minimumReleaseAge = 604800` on Bun and `npmMinimalAgeGate: "1w"` on Yarn. Dependabot's
@@ -430,30 +435,45 @@ Attach to GitHub Release artifacts.
   [secure use reference](https://docs.github.com/en/actions/reference/security/secure-use),
   [repository Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)).
   ```yaml
-  # Good — SHA, with the tag it resolved to in a trailing comment
-  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-  # Risky — any owner, GitHub included
-  uses: actions/checkout@v7
-  uses: some-user/some-action@v1
+  steps:
+    # Good — SHA, with the tag it resolved to in a trailing comment
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+    # Risky — any owner, GitHub included
+    - uses: actions/checkout@v7
+    - uses: some-user/some-action@v1
   ```
   One trade-off the same page states: Dependabot "will not create alerts for actions pinned to SHA
-  values" — it still opens version-update PRs for them, so keep the `github-actions` ecosystem in
-  `dependabot.yml`.
+  values". It still opens version-update PRs for them — the `github-actions` updater supports the
+  `actions/checkout@<commit>` form, and a commit "not associated with any tag" is moved to the
+  latest commit rather than the latest release (verified 2026-10-14 —
+  [supported ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories#github-actions)) —
+  so keep the `github-actions` ecosystem in `dependabot.yml`.
 
   **Workflow lockfile — public preview**, "subject to change": `.github/workflows/actions.lock`,
   generated by the `gh actions-lock` CLI extension and never hand-edited. It records the commit
-  *and* the numeric owner/repo IDs of every action, transitive ones included, and once a workflow
-  is onboarded, every action it uses must be in the lock. Locked dependencies satisfy the
-  SHA-pinning setting without SHAs in the workflow file (verified 2026-10-14 —
-  [workflow dependency lockfiles](https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles)).
-  Because it is a preview, SHA pins remain this file's default; a repo that already has an
-  `actions.lock` is covered and should not be flagged for tag references.
+  *and* the numeric owner/repo IDs of every action and reusable workflow, and extends to transitive
+  dependencies "**except** for dependencies of reusable workflow calls" — those are covered by the
+  lockfile of the repository that defines the reusable workflow. Workflows are onboarded "one at a
+  time or all at once"; the lockfile's `workflows:` section lists which ones are in, and once a
+  workflow is onboarded every action it uses must be in the lock. Locked dependencies satisfy the
+  SHA-pinning setting without SHAs in the workflow file, but "Dependencies that aren't in the
+  lockfile still need a full-length SHA" (verified 2026-10-14 —
+  [workflow dependency lockfiles](https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles),
+  [repository Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)).
+  Dependabot regenerates the lock entry in the same PR when it bumps an action in an onboarded
+  workflow, but "will **not** onboard a workflow for you" (verified 2026-10-14 —
+  [lock workflow dependencies](https://docs.github.com/en/actions/how-tos/secure-your-work/lock-workflow-dependencies)).
+  Because it is a preview, SHA pins remain this file's default. Workflows onboarded to an
+  `actions.lock` are covered and should not be flagged for tag references; every other workflow in
+  the same repo still is (§13.11 check 4 makes that split).
 
   > The SHA previously given here (`b4ffde65…`) still resolves — but to a commit from **2023-10-17**,
   > i.e. the `actions/checkout` v4 line, four majors behind. That is the failure mode of pinning
   > without a bot: it keeps working and quietly stops being maintained. The SHAs above and below
   > were re-resolved 2026-10-14; re-resolve rather than copying them, and let Dependabot's
-  > `github-actions` ecosystem move the pins (it rewrites SHAs and updates the trailing comment).
+  > `github-actions` ecosystem move the pins. It rewrites the SHA, and "updates the version
+  > documentation of GitHub Actions when the comment is on the same line", e.g.
+  > `actions/checkout@<commit> #<tag or link>` (verified 2026-10-14 — same supported-ecosystems page).
   >
   > **Dereference annotated tags or the pin is wrong.** `gh api repos/<owner>/<repo>/git/ref/tags/<tag>`
   > returns `.object.type == "tag"` for an annotated tag, and its `.object.sha` is the *tag object*,
@@ -475,7 +495,7 @@ Attach to GitHub Release artifacts.
   > | `pnpm/action-setup` | v6.1.0 | `ea17c68df8912ef543352723c149a84f56e3d413` |
   > | `pnpm/setup` | v3.1.1 (= `v3`) | `a0881977cd8ea73b1ed212236c99ca10dcc80cf4` |
   > | `gitleaks/gitleaks-action` | v3.0.0 (= `v3`) | `e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e` |
-  > | `cloudflare/wrangler-action` | v4.1.3 | `953926a2e2182532811c01a25e53647d93bf07c0` |
+  > | `cloudflare/wrangler-action` | v4.1.3 (= `v4`) | `953926a2e2182532811c01a25e53647d93bf07c0` |
 
 - **socket.dev** — GitHub App reviews dep-change PRs for supply-chain red flags (install scripts,
   shell exec, network calls, typosquat). Zero config, high signal. ⚠️ "Free for public repos" was
@@ -579,13 +599,26 @@ grep -rlE "(audit|snyk|gitleaks|trufflehog)" .github/workflows/ 2>/dev/null || e
 # 3. Lockfile committed?
 ls pnpm-lock.yaml yarn.lock package-lock.json 2>/dev/null
 
-# 4. Actions NOT SHA-pinned? (lists offenders; silence = all pinned). First-party actions/* and
-# github/* count too. A repo with a workflow lockfile is covered by it instead — check that first.
-if [ -f .github/workflows/actions.lock ]; then
-  echo "OK: workflow lockfile present — tag refs are locked (public preview feature)"
+# 4. Actions not SHA-pinned — one line per offender, then a one-line verdict. First-party actions/*
+# and github/* count too. Workflows listed under `workflows:` in actions.lock are covered by the
+# lockfile and skipped; every other workflow file still needs full-length SHAs (§13.7).
+lock=.github/workflows/actions.lock
+onboarded=$([ -f "$lock" ] && tr -d '\r' < "$lock" | sed -n '/^workflows:/,/^dependencies:/p' \
+  | grep -oE '\.github/workflows/[A-Za-z0-9._/-]+\.ya?ml')
+scanned=0; locked=0; bad=""
+for f in $(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) 2>/dev/null | sort); do
+  if printf '%s\n' "$onboarded" | grep -qxF "$f"; then locked=$((locked+1)); continue; fi
+  scanned=$((scanned+1))
+  hits=$(tr -d '\r' < "$f" | grep -E "^[[:space:]-]*\{?[[:space:]]*uses:" \
+    | grep -oE "uses:[[:space:]]+['\"]?[^[:space:]'\"#},]+" | sed -E "s/uses:[[:space:]]+['\"]?/uses: /" \
+    | grep -vE '@[0-9a-f]{40}$' | grep -vE 'uses: (\./|\$/|docker://)' | sort -u | sed "s|^|$f: |")
+  [ -n "$hits" ] && bad="$bad$hits
+"
+done
+if [ -n "$bad" ]; then
+  printf '%s' "$bad"; echo "FAIL: $(printf '%s' "$bad" | grep -c .) unpinned action ref(s) above"
 else
-  grep -rhoE "uses: [^ ]+@[^ #]+" .github/workflows/ 2>/dev/null \
-    | grep -vE "@[0-9a-f]{40}$" | grep -vE "uses: (\./|docker://)" | sort -u
+  echo "OK: $scanned workflow file(s) SHA-pinned, $locked covered by actions.lock"
 fi
 
 # 5-7. Run the ONE package manager the project uses. `a || b` is wrong here: these tools exit
@@ -605,7 +638,14 @@ npx license-checker-rseidelsohn --summary 2>/dev/null || true   # any manager, i
 # 8. Agent-ready signals (see 06-agent-ready.md)
 curl -sI "https://DOMAIN/" | grep -iE "^link:" || echo "MISSING: Link headers"
 curl -sI -H "Accept: text/markdown" "https://DOMAIN/" | grep -i "^content-type: text/markdown" || echo "MISSING: Markdown-for-Agents"
-curl -sI "https://DOMAIN/.well-known/http-message-signatures-directory" | grep -i "^content-type: application/http-message-signatures-directory+json" || echo "MISSING: Web Bot Auth key directory"
+# Web Bot Auth: a 404 is correct unless the site operates a bot that signs its outbound requests
+# (06-agent-ready.md §4). Set SIGNS_REQUESTS=yes only for such a site.
+SIGNS_REQUESTS=no
+if [ "$SIGNS_REQUESTS" = yes ]; then
+  curl -sI --max-time 10 "https://DOMAIN/.well-known/http-message-signatures-directory" | grep -i "^content-type: application/http-message-signatures-directory+json" || echo "MISSING: Web Bot Auth key directory (site signs requests)"
+else
+  echo "INFO: Web Bot Auth not checked — no signing bot, so no key directory is expected"
+fi
 ```
 
 > Check 4 was rewritten on 2026-08-14 because the previous regex — `uses: [^a-zA-Z].*@v[0-9]` —
@@ -614,12 +654,30 @@ curl -sI "https://DOMAIN/.well-known/http-message-signatures-directory" | grep -
 > fixture containing two deliberately unpinned third-party actions; it exited 1 and printed
 > nothing, i.e. it reported "all pinned" for a repo that was not. On 2026-10-14 it changed again:
 > it no longer exempts first-party `actions/*` and `github/*` (GitHub's own guidance has no such
-> carve-out, §13.7), it catches branch refs such as `@main` as well as `@v…` tags, it skips local
-> `./` actions and `docker://` images, and it defers to a workflow lockfile when one exists. Beware the inverted reading
-> of this one: **output means a problem**, silence means clean.
+> carve-out, §13.7), it catches branch refs such as `@main` as well as `@v…` tags, and it skips local
+> `./` actions and `docker://` images. Later the same day it was rewritten a third time, after a
+> review showed the lockfile branch printed `OK` and skipped every file whenever `actions.lock`
+> existed — a fixture with one onboarded workflow and an un-onboarded `release.yml` using a
+> tag-pinned third-party action passed. GitHub onboards workflows "one at a time or all at once",
+> and "Dependencies that aren't in the lockfile still need a full-length SHA" (verified 2026-10-14 —
+> [workflow dependency lockfiles](https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles),
+> [repository Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)).
+> The check now reads the onboarded paths from the lockfile's `workflows:` section (the format on
+> the first page) and greps every other `.yml`/`.yaml` file. It also tolerates several spaces after
+> `uses:`, quoted refs, flow-style `{ uses: … }` steps and CRLF files, ignores commented-out lines,
+> and skips `$/…` references, which `gh actions-lock` writes for in-repo actions and which are
+> "inherently pinned" ([lock workflow dependencies](https://docs.github.com/en/actions/how-tos/secure-your-work/lock-workflow-dependencies)).
+> Tested on 2026-10-14 under sh, bash and zsh against fixtures covering each of those cases, a
+> repo with no lockfile, and one with no workflows (the file list comes from `find`, not a glob,
+> because zsh aborts on a glob that matches nothing). If a future lockfile format stops matching, nothing counts as onboarded and
+> every workflow is grepped — noisy, never silently clean. A cross-repository reusable workflow
+> (`owner/repo/.github/workflows/x.yml@v2`) is listed too; the SHA-pinning setting still accepts
+> those by tag ("Reusable workflows can still be referenced by tag", same settings page), so treat
+> that line as a judgement call rather than a policy violation. The last line is the verdict:
+> `OK: …` or `FAIL: N unpinned action ref(s) above`.
 
 Roll output into severity gap report:
 - 🔴 **Critical**: active CVE, secret detected, no branch protection
-- 🟡 **Recommended**: no Dependabot/Renovate, no CI audit gate, actions not SHA-pinned (and no workflow lockfile), license violation, no `Link:` headers
+- 🟡 **Recommended**: no Dependabot/Renovate, no CI audit gate, actions not SHA-pinned (outside workflows onboarded to `actions.lock`), license violation, no `Link:` headers, no Web Bot Auth key directory on a site that operates a signing bot
 - 🟢 **Nice**: no SBOM, no socket.dev, no pre-commit secret scan, no Markdown-for-Agents
-- ⚪ **Intent only**: no `Content-Signal`, no Web Bot Auth JWKS — no known technical effect (`06-agent-ready.md`)
+- ⚪ **Intent only**: no `Content-Signal` — no known technical effect (`06-agent-ready.md`)

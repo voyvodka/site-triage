@@ -71,9 +71,11 @@ curl -sI -H "Accept: text/markdown" --resolve DOMAIN:443:$IP "https://DOMAIN/" |
 # Expect: text/markdown; charset=utf-8 (not text/html)
 
 # Web Bot Auth key directory — only meaningful if the site operates a bot that signs requests
-curl -sI --resolve DOMAIN:443:$IP "https://DOMAIN/.well-known/http-message-signatures-directory" | grep -i "^content-type:"
-# Expect, if present: application/http-message-signatures-directory+json (not HTML fallback).
-# A plain site that sends no bot traffic has nothing to publish here; 404 is correct.
+curl -s -o /dev/null -w '%{http_code} %{content_type}\n' --max-time 10 \
+  --resolve DOMAIN:443:$IP "https://DOMAIN/.well-known/http-message-signatures-directory"
+# Expect 404 for a site that runs no signing bot — it has nothing to publish here.
+# A site that operates one: 200 application/http-message-signatures-directory+json.
+# 200 text/html is neither — an HTML fallback answering for a file the site does not have.
 ```
 
 The directory's content type, and the requirement that the response be signed, come from
@@ -88,7 +90,9 @@ tips are AI-generated and the page says so; use them as leads and verify each ag
 `06-agent-ready.md` before acting.
 
 A `grep` above that prints nothing exits non-zero — that is the finding (header or directive
-absent), not a broken pipeline. All four probes were executed as written on 2026-08-14.
+absent), not a broken pipeline. All four probes were executed as written on 2026-08-14; the Web
+Bot Auth probe was rewritten to print status and content type on 2026-10-14 and run in that form
+against a live public host the same day.
 
 ## Step 1c: Repo audit (if user has local checkout)
 
@@ -107,14 +111,7 @@ ls .github/workflows/*.yml 2>/dev/null | xargs grep -l -E "(audit|snyk|gitleaks)
 grep -o '"packageManager"[^,]*' package.json 2>/dev/null
 ls pnpm-lock.yaml yarn.lock package-lock.json bun.lock bun.lockb 2>/dev/null
 
-# Actions NOT SHA-pinned, first-party included? Same as 13.11 #4: output is a finding, silence is
-# clean. A workflow lockfile covers tag refs instead.
-if [ -f .github/workflows/actions.lock ]; then
-  echo "OK: workflow lockfile present — tag refs are locked (public preview feature)"
-else
-  grep -rhoE "uses: [^ ]+@[^ #]+" .github/workflows/ 2>/dev/null \
-    | grep -vE "@[0-9a-f]{40}$" | grep -vE "uses: (\./|docker://)" | sort -u
-fi
+# Actions not SHA-pinned: run 13-dependency-security.md §13.11 check 4 — the canonical check; do not copy it here.
 
 # Pending CVEs? Run the ONE that matches the project.
 # Not `pnpm audit || npm audit` — audit tools exit non-zero when they FIND something, so the
@@ -128,7 +125,7 @@ fi
 
 ## Step 1d: Internal-link canonicalization audit (catches trailing-slash drift)
 
-Single biggest cause of crawl-budget waste on otherwise-healthy static sites. Framework config declares the canonical URL form (`trailingSlash: 'always'` in Astro, `trailingSlash: true` in Next.js, etc.), then internal links drift over time as developers paste paths without trailing slashes. Sitemap and canonical tags stay correct, so it's invisible in standard probes — but every header/footer/body link triggers a 308. Googlebot does follow it (up to 10 hops), so pages are still reached; the cost is an extra fetch per link, internal links that point at non-canonical URLs, and a pile of "Page with redirect" entries. Google's inspection tools do not follow redirects at all (verified 2026-10-14 — [HTTP status codes and Google's crawlers](https://developers.google.com/crawling/docs/troubleshooting/http-status-codes)).
+Single biggest cause of crawl-budget waste on otherwise-healthy static sites. Framework config declares the canonical URL form (`trailingSlash: 'always'` in Astro, `trailingSlash: true` in Next.js, etc.), then internal links drift over time as developers paste paths without trailing slashes. Sitemap and canonical tags stay correct, so it's invisible in standard probes — but every header/footer/body link triggers a 308. Googlebot does follow it (up to 10 hops), so pages are still reached; the cost is an extra fetch per link, internal links that point at non-canonical URLs, and a pile of "Page with redirect" entries. Google's two pages disagree on its inspection tools: the crawler documentation says *"Google Inspection Tools doesn't follow redirects"*, while the Page indexing help says *"The live URL Inspection test follows redirects and then tests the final URL, although the live test doesn't indicate that it is following a redirect"* — so a live test on a slashless URL may silently report on its target (both verified 2026-10-14 — [HTTP status codes and Google's crawlers](https://developers.google.com/crawling/docs/troubleshooting/http-status-codes), [Page indexing report](https://support.google.com/webmasters/answer/7440203)).
 
 ```bash
 # 1. Detect the project's canonical URL form
@@ -280,14 +277,15 @@ frequency table — no measurement backs an ordering, so do not present it to a 
   GEO factor (`06-agent-ready.md` §2). Mention it as intent-only, never as a defect
 - ❌ `Link:` headers missing → agentic-web probe fails. Confirm with **C8**, which distinguishes
   "never declared" from "declared in `_headers` but not served"
-- ⚪ Web Bot Auth directory missing → the scanner flags it, but it only matters for a site that
-  operates a signing bot, and the scanner scores a missing directory as informational only (Step 4). Not a finding
-  for an ordinary site
+- ⚪ Web Bot Auth directory missing → the scanner reports it as `neutral`, *"Web Bot Auth directory
+  not found (informational only)"* (verified 2026-10-14 — `POST https://isitagentready.com/api/scan`
+  against a site without one). It only matters for a site that operates a signing bot. Not a
+  finding for an ordinary site
 - ⚠ `og:image` absent, SVG, or 404 → blank social card. **C9** checks every sitemap URL at once
 - ⚠ `apple-touch-icon` missing — iOS home screen generic icon (`mask-icon` is not a finding; see
   `01-brand-application.md`, which drops it)
 - ⚠ Repo missing Dependabot/Renovate config — passive CVE exposure
 - ⚠ **GitHub Actions pinned to a mutable tag** (`uses: owner/action@v4`) rather than a full commit
   SHA — a tag can be repointed at new code, so tag-pinning is the supply-chain risk. This is what
-  the Step 1c grep is looking for; a hit means "pin to SHA", not "add a tag"
+  `13-dependency-security.md` §13.11 check 4 (pointed to from Step 1c) is looking for; a hit means "pin to SHA", not "add a tag"
 - ⚠ Trailing-slash drift — header/footer/body/redirects/llms.txt link to slashless paths while framework forces trailing slash → every internal click is a 308. A single 308 surfaces in GSC as "Page with redirect", or as chronically slow indexing of sub-pages. "Redirect error" is a different reason — a chain that is too long, a loop, an over-long or bad redirect URL (verified 2026-10-14 — [Page indexing report](https://support.google.com/webmasters/answer/7440203)) — and appears only if the drift stacks into one. Run §1d, then **C4** for the live hop count.

@@ -40,7 +40,7 @@ Content rules, when you do ship one:
 | Type | Status | Source |
 |---|---|---|
 | `FAQPage` | Rich result removed from Search 2026-05-07; Search Console FAQ report and Rich Results Test support withdrawn (verified 2026-08-14). Documentation removed in June 2026 — the old `/structured-data/faqpage` URL now 301s to the updates log, which says the rich result *"is no longer shown in Google Search results"* | [Google — Search Central updates](https://developers.google.com/search/updates#removing-faq-rich-result) (verified 2026-10-14) |
-| `HowTo` | Absent from the current Search Gallery; desktop rich result removed years earlier | [Google — Search Gallery](https://developers.google.com/search/docs/appearance/structured-data/search-gallery) (verified 2026-08-14 — absence confirmed against the live gallery) |
+| `HowTo` | Rich result gone on desktop and mobile; documentation removed 2023-09-14 — the old `/structured-data/how-to` URL now 301s to the updates log, whose 2023-09-14 entry says Google *"Removed the How-to structured data documentation, as this rich result is no longer shown in search results, on both desktop and mobile devices."* Absent from the current Search Gallery (verified 2026-08-14) | [Google — Search Central updates](https://developers.google.com/search/updates#how-to-deprecation) (verified 2026-10-14) |
 
 Both remain valid schema.org vocabulary, and other consumers may parse them. That is not a reason
 to add them: markup you cannot verify the effect of is markup you will keep maintaining for

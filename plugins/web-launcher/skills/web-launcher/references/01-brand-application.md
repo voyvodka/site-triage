@@ -63,15 +63,15 @@ Take a brand kit (colors, typography, logomark SVG) and apply it across existing
 
 | File | Why it is in the list |
 |---|---|
-| `favicon.svg` | Primary mark, scales to every tab size, in browser tabs. Supported by Chrome/Edge 80+, Firefox 41+, and **Safari only from 26.0** (desktop and iOS) — global support ~92.1%; Chromium needs it served as `image/svg+xml` (verified 2026-10-14 — [caniuse: SVG favicons](https://caniuse.com/link-icon-svg), data updated 2026-10-13). **Google Search does not use it** — see `favicon.ico` |
+| `favicon.svg` | Primary mark, scales to every tab size, in browser tabs. Supported by Chrome/Edge 80+, Firefox 41+, and **Safari only from 26.0** (desktop and iOS) — global support ~92.1%; Chromium browsers and Firefox need it served as `image/svg+xml` (verified 2026-10-14 — [caniuse: SVG favicons](https://caniuse.com/link-icon-svg), data updated 2026-10-13). **Google Search does not use it** — see `favicon.ico` |
 | `favicon.ico` | The fallback for the ~8% of browsers without SVG favicons, Safari before 26 included — and **a format Google Search can use**: its supported favicon formats are BMP, GIF, ICO, PNG, JPEG, PPM and TIFF, not SVG; square, at least 8×8, with *"larger than 48x48px"* recommended. Google reads `rel="icon"`, `shortcut icon`, `apple-touch-icon` and `apple-touch-icon-precomposed` (verified 2026-10-14 — [Google: favicon in Search results](https://developers.google.com/search/docs/appearance/favicon-in-search), last updated 2026-08-28). The 180×180 apple-touch PNG below already meets that recommendation; a 16/32/48 ICO alone does not. See `10-brand-serp.md` for the rest of the result-page brand surface. ICO can hold 16/32/48 in one file (verified 2026-10-14 — [MDN: link `sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link#sizes)) |
 | `apple-touch-icon.png` at 180×180 | iOS home-screen icon. **Must be PNG** — Apple's web-content docs specify a PNG file and never an SVG (verified 2026-08-14 — [Configuring Web Applications](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)). Give it an opaque background; a transparent dark mark can disappear on the home screen. ⚠️ The specific claim that iOS composites transparency to *black* is widely repeated but has no primary source — the safe practice stands either way |
 | `site.webmanifest` icons | Install/launch surfaces — see below |
 
 `sizes` is **allowed only** when `rel` is `icon` or a non-standard relation such as
-`apple-touch-icon`, and it is **optional** there — its value *"if present, is merely advisory"* and
-helps the browser pick among several icons. Earlier versions of this file called it required; that
-misread MDN's *"must be present only if"*. When you do set it, `sizes="any"` is the value for a
+`apple-touch-icon`, and it is **optional** there — in WHATWG HTML's words its value *"if present, is
+merely advisory"*, and it helps the browser pick among several icons. Earlier versions of this
+file called it required; that misread MDN's *"must be present only if"*. When you do set it, `sizes="any"` is the value for a
 vector file (verified 2026-10-14 — [MDN: link `sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link#sizes);
 [WHATWG HTML: link `sizes`](https://html.spec.whatwg.org/multipage/semantics.html#attr-link-sizes)).
 

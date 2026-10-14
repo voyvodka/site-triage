@@ -6,9 +6,10 @@
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 >
 > Google publishes no timings for the signals in this file — logo, brand rank, sitelinks, rich
-> snippets — so this file quotes none. Its only published ranges are for crawling after a request
-> and for canonical clusters (`12-indexing.md`, "Realistic timeline"); do not stretch those to
-> cover a logo. Tell the user "days to weeks, depending on how often the site is crawled" and point
+> snippets — so this file quotes none. Its only published ranges are for crawling after a request,
+> for canonical clusters, and for Validate Fix in Search Console (*"typically takes up to about two
+> weeks"*) — all three in `12-indexing.md`, "Realistic timeline"; do not stretch them to cover a
+> logo. Tell the user "days to weeks, depending on how often the site is crawled" and point
 > at Search Console for the actual signal — the same rule as `09-audit-workflow.md` Step 6.
 
 ## Reality check (set expectations honestly before promising anything)

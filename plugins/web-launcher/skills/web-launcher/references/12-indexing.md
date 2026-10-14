@@ -128,6 +128,13 @@ Automate as a **step in the deploy pipeline**, not as a Cloudflare trigger.
 > `build.canceled`) through Queues **Event Subscriptions**, so a queue consumer can send the ping
 > (verified 2026-10-14 —
 > [Events & schemas](https://developers.cloudflare.com/queues/event-subscriptions/events-schemas/)).
+> **Filter on the branch before pinging.** Workers Builds also runs *preview* builds — they *"run
+> for branches that are not your production branch"* — and the event schema carries no
+> production/preview flag; the docs do not say whether a preview build emits `build.succeeded`.
+> Treat it as if it does: ping IndexNow only when `payload.buildTriggerMetadata.branch` is the
+> production branch, or a feature branch announces changes the production site does not have
+> (verified 2026-10-14 — [Builds](https://developers.cloudflare.com/workers/ci-cd/builds/), same
+> Events & schemas page).
 > A `wrangler deploy` run from any other CI emits no such event. For that case — and as the simpler
 > default for every case — put the ping in the step after the deploy: a line in the CI job, or a
 > `postdeploy` npm script. Whatever already runs the deploy runs the ping.

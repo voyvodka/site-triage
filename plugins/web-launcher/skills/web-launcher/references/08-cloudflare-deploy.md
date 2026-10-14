@@ -113,12 +113,25 @@ Copied as-is, `http://www.DOMAIN/` therefore takes two hops: Always Use HTTPS se
 `https://www.DOMAIN/`, then the rule sends it to the apex. Google's crawlers follow up to 10
 redirect hops by default (verified 2026-10-14 —
 [HTTP status codes and Google crawlers](https://developers.google.com/crawling/docs/troubleshooting/http-status-codes)),
-so two hops costs nothing in indexing. If you want one anyway, widen the match to `http*://www.*` — the documented wildcard form for "either
-scheme" (verified 2026-10-14 — [Create a redirect rule](https://developers.cloudflare.com/rules/url-forwarding/single-redirects/create-dashboard/)) —
-and set the target to `https://${2}`: captures are numbered left to right, one per `*`, so the
-scheme suffix is now `${1}` (verified 2026-10-14 — `wildcard_replace` examples in
+so the extra hop is acceptable; widen the rule to remove it. Widening means matching
+`http*://www.*`: each `*` matches zero or more characters, so `http*://` matches both `http://`
+and `https://` (verified 2026-10-14 — Example A under
+[wildcard matching](https://developers.cloudflare.com/ruleset-engine/rules-language/operators/#wildcard-matching),
+page last updated 2026-10-01; the
+[Create a redirect rule](https://developers.cloudflare.com/rules/url-forwarding/single-redirects/create-dashboard/)
+page uses the same `http*://*.example.com/files/*` form). Set the target to `https://${2}`:
+captures are numbered left to right, one per `*`, so the scheme suffix is now `${1}` (verified
+2026-10-14 — `wildcard_replace` examples in
 [Rules language functions](https://developers.cloudflare.com/ruleset-engine/rules-language/functions/)).
-The verification block below probes the `http://` leg either way.
+
+⚠️ Whether the widened rule actually collapses the path to one hop depends on Single Redirects
+running before Always Use HTTPS, and Cloudflare does not document that order: the Rules execution
+order and the request phases of the
+[Phases list](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/) (page last
+updated 2026-10-12) start at Single Redirects and never mention Always Use HTTPS (checked 2026-10-14 —
+[URL forwarding](https://developers.cloudflare.com/rules/url-forwarding/)). Read the result from the
+chain line at the end of the verification block: `1 hop(s)` means the rule ran first, `2 hop(s)`
+means Always Use HTTPS still answers the `http://` request.
 
 Redirect status codes differ by mechanism (verified 2026-10-14):
 - **Single Redirects** (Redirect Rules) and **Bulk Redirects**: 301, 302, 307 or 308, **default 301**
@@ -239,8 +252,8 @@ content will never be served" (verified 2026-10-14 — same page).
 Same directory, one rule per line, `[source] [destination] [code?]`. Codes 301, 302, 303, 307 and
 308 are supported and the default is **302**; domain-level rules (`www.DOMAIN/* …`) are not, so
 host redirects belong in a zone rule. Limits: 2,000 static + 100 dynamic redirects (2,100 total),
-1,000 characters per declaration. Order matters — the top-most match wins, and static rules must
-precede dynamic ones. Redirects "are not applied to requests served by your Worker code"
+1,000 characters per declaration. Order matters — the top-most match wins, and static redirects
+"should appear before dynamic redirects". Redirects "are not applied to requests served by your Worker code"
 (verified 2026-10-14 — [Redirects](https://developers.cloudflare.com/workers/static-assets/redirects/), page last updated 2026-08-25).
 Past 2,100 rules, the docs point to Bulk Redirects.
 
@@ -326,8 +339,8 @@ Give the user this checklist for `dash.cloudflare.com → DOMAIN`:
 | SSL/TLS → Overview | Encryption mode | **Automatic** if offered, else **Full (strict)** | Only matters if the zone also proxies to a real origin — see below |
 | SSL/TLS → Edge Certificates | Always Use HTTPS | **On** | HTTP→HTTPS redirect; status code undocumented, assert it with `curl` |
 | SSL/TLS → Edge Certificates | Automatic HTTPS Rewrites | **On** | Mixed-content protection |
-| Security → Settings → Bot traffic | Bot Fight Mode | **Off** | See below |
-| Security → Settings → Bot traffic | Configure AI bot policies | A deliberate choice per policy | See "AI crawlers" below |
+| Security Settings (filter: Bot traffic) | Bot Fight Mode | **Off** | See below |
+| Security Settings | Configure AI bot policies | A deliberate choice per policy | See "AI crawlers" below |
 | Rules → Redirect Rules | www → apex | 301, preserve path/query | The documented www redirect method |
 | Caching → Configuration | Invalidate Cache / Purge Cache | (only if you set long `max-age` yourself) | Defaults already revalidate |
 
@@ -370,7 +383,7 @@ off for a static marketing site. AI-crawler policy is a separate feature, below.
 ### AI crawlers — AI bot policies, not "Block AI bots"
 
 The single **Block AI bots** toggle is headed "Deprecating on September 15, 2026". Its replacement
-is **Configure AI bot policies** under Security Settings: three policies — **Search** (indexing to
+is **Security Settings** > **Configure AI bot policies**: three policies — **Search** (indexing to
 answer later), **Agent** (real-time fetches on a person's behalf) and **Training** (including
 mixed-purpose Search+Training crawlers) — each set to Block on all pages, Block on pages with ads,
 or Allow (verified 2026-10-14 —
@@ -381,6 +394,17 @@ Training and Agent blocked on pages that display ads, Search allowed. ⚠️ Tha
 written ahead of the date; no primary source read on 2026-10-14 confirms the switch happened. On a
 zone added after that date, open the policies page and read what is actually set before assuming
 either way.
+
+Existing zones are touched on the same date through the legacy toggle. The page describes it as an
+option that "excludes mixed-purpose bots that are used both for Training and for Search", then says
+that from 2026-09-15 "Mixed-purpose crawlers that combine Search and Training will also be blocked by all
+configurations to block AI training, including the legacy 'Block AI bots' option" (verified
+2026-10-14 — same page; the
+[changelog of 2026-07-01](https://developers.cloudflare.com/changelog/post/2026-07-01-ai-traffic-options/)
+says the same crawlers "will be affected by the new defaults to block Training"). So a zone that
+switched on **Block AI bots** before the policies existed may now also block crawlers that feed an AI search
+product. ⚠️ Written ahead of the date and not confirmed as switched; on a zone with that toggle
+on, open **Configure AI bot policies** and check how Search and Training are actually set.
 
 The managed robots.txt is now driven by these policies through **Bot Preference Sync**
 (verified 2026-10-14 — [robots.txt setting](https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/), page last updated 2026-10-08):
@@ -442,35 +466,55 @@ What the signals do and do not achieve is covered in `06-agent-ready.md`.
 # Resolve through Cloudflare's current anycast IPs rather than a hardcoded address. `dig +short`
 # can print a CNAME before the address; keep the first IPv4 line only.
 IP=$(dig +short DOMAIN | grep -E '^[0-9.]+$' | head -1)
-[ -n "$IP" ] || echo "?    DOMAIN did not resolve — the probes below cannot run"
 
-for p in / /favicon.svg /robots.txt /sitemap.xml /.well-known/security.txt /og-cover.png; do
-  printf '%s -> ' "$p"
-  curl -sI --resolve DOMAIN:443:$IP "https://DOMAIN$p" | head -1
-done
+# One line per probe: status line plus Location if any, or NO RESPONSE.
+probe() {  # host port url
+  r=$(curl -sI --max-time 10 --resolve "$1:$2:$IP" "$3" | tr -d '\r' \
+    | grep -iE '^(HTTP|location)' | paste -sd' ' -)
+  printf '%s -> %s\n' "$3" "${r:-NO RESPONSE}"
+}
 
-# Security headers actually present on a real page (not just on a 404 miss)
-curl -sI --resolve DOMAIN:443:$IP "https://DOMAIN/" | grep -iE 'strict-transport|content-security|x-frame|referrer-policy'
+if [ -z "$IP" ]; then
+  echo "FAIL: DOMAIN has no IPv4 address in DNS — fix DNS before running any probe"
+else
+  for p in / /favicon.svg /robots.txt /sitemap.xml /.well-known/security.txt /og-cover.png; do
+    probe DOMAIN 443 "https://DOMAIN$p"
+  done
 
-# www -> apex, tested on BOTH a real page and a random path
-curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/" | head -3
-curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/test-$(date +%s)" | head -3
-# Expect 301 + Location: https://DOMAIN/... on BOTH. If only the random path redirects,
-# the Worker is running behind asset serving — see the routing-order section.
+  # Security headers actually present on a real page (not just on a 404 miss)
+  H=$(curl -sI --max-time 10 --resolve DOMAIN:443:$IP "https://DOMAIN/" | tr -d '\r')
+  for h in strict-transport-security content-security-policy x-frame-options referrer-policy; do
+    printf '%s\n' "$H" | grep -qi "^$h:" && echo "OK: $h" || echo "MISSING: $h"
+  done
 
-# The http:// legs. Always Use HTTPS does not document its status code, so print what it is.
-for h in DOMAIN www.DOMAIN; do
-  printf 'http://%s/ -> ' "$h"
-  curl -sI --resolve $h:80:$IP "http://$h/" | grep -iE '^(HTTP|location)' | tr -d '\r' | paste -sd' ' -
-done
-# Expect a 3xx to https:// on both. http://www.DOMAIN/ landing on https://www.DOMAIN/ (not the
-# apex) is the two-hop case from the www section — fine, or widen the rule to http*://www.*.
-# Full chain in one line:
-curl -sIL -o /dev/null -w '%{num_redirects} hops -> %{url_effective}\n' "http://www.DOMAIN/"
+  # www -> apex, tested on BOTH a real page and a random path
+  probe www.DOMAIN 443 "https://www.DOMAIN/"
+  probe www.DOMAIN 443 "https://www.DOMAIN/test-$(date +%s)"
+
+  # The http:// legs. Always Use HTTPS does not document its status code, so print what it is.
+  probe DOMAIN 80 "http://DOMAIN/"
+  probe www.DOMAIN 80 "http://www.DOMAIN/"
+
+  # Full chain in one line. 000 means no response at all.
+  curl -sIL --max-time 10 -o /dev/null \
+    -w '%{http_code} after %{num_redirects} hop(s) -> %{url_effective}\n' "http://www.DOMAIN/"
+fi
 ```
 
-All 200, www 301 on both the real page and the random path, and both `http://` probes redirecting
-to `https://`. A random path on the apex is
-`404` when `not_found_handling` is `"404-page"` (multi-page site) and `200` only on a real
-client-routed SPA — decide which from the field notes above before reading the result. See
-`11-validation-toolkit.md` for the full probe suite.
+Expected output, one verdict per line:
+
+- every asset probe a `200` status line, and four `OK:` header lines — a `MISSING:` line is a finding;
+- both `https://www.DOMAIN/…` probes `301` with `location: https://DOMAIN/…`. If only the random
+  path redirects, the Worker is running behind asset serving — see the routing-order section;
+- both `http://` probes a 3xx to `https://`. `http://www.DOMAIN/` landing on `https://www.DOMAIN/`
+  (not the apex) is the two-hop case from the www section — acceptable; widen the rule to remove it;
+- the chain line `200 after 1 hop(s) -> https://DOMAIN/` (widened rule ran first) or
+  `200 after 2 hop(s) -> https://DOMAIN/` (Always Use HTTPS answered first). `000 after 0 hop(s)`
+  means nothing answered;
+- `NO RESPONSE` on a probe means nothing answered within 10 seconds — not a pass.
+
+A random path on the apex is `404` when `not_found_handling` is `"404-page"` (multi-page site) and
+`200` only on a real client-routed SPA — decide which from the field notes above before reading
+the result. Run against `example.com` on 2026-10-14 the block printed one line per probe, four
+`MISSING:` lines and `200 after 0 hop(s)`; against an unresolvable name it printed only the
+`FAIL:` line. See `11-validation-toolkit.md` for the full probe suite.

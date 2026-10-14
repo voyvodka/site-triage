@@ -5,8 +5,9 @@ needs to be traced to a cause. Read this before writing a gap report about a liv
 
 > **Verified 2026-10-14 · review by 2026-12-13.** Every check below was executed against two live
 > production sites on 2026-08-14 and each one either caught a real defect or cleared a suspected
-> one. They are measurements, not lint rules. The Search Console labels and vendor behaviour they
-> cite were re-read on 2026-10-14.
+> one — except the C2 Content Signals Policy sub-check, added on 2026-10-14 from Cloudflare's
+> documentation and not yet run against a live site. They are measurements, not lint rules. The
+> Search Console labels and vendor behaviour they cite were re-read on 2026-10-14.
 
 ## Why this file exists
 
@@ -107,8 +108,9 @@ Agent, Training): when a policy is set to block, Cloudflare prepends a block bet
 `# BEGIN Cloudflare Managed content` and `# END Cloudflare Managed Content`, including a
 `Content-signal: search=yes, ai-train=no, use=reference` line. A Free-plan zone with **no**
 robots.txt of its own and the feature off is served Cloudflare's *Content Signals Policy* text
-instead — a CDN answering for a file the repo never shipped, though not a policy inversion
-(verified 2026-10-14 —
+instead — a CDN answering for a file the repo never shipped, though not a policy inversion. The
+same policy text also precedes every managed block: Cloudflare *"includes the Content Signals
+Policy whenever Bot Preference Sync adds managed directives"* (verified 2026-10-14 —
 [robots.txt setting](https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/)).
 
 ```bash
@@ -122,15 +124,15 @@ else
   else
     echo "FAIL live robots.txt differs from repo — edge injection or stale deploy"
   fi
+  # Cloudflare's Content Signals Policy text precedes every managed block, so it is reported
+  # only on its own: a Free zone with no robots.txt and Bot Preference Sync off.
   if grep -qi 'managed content' "$live"; then
     echo "FAIL a CDN is injecting a managed robots.txt block"
-  else
-    echo "OK   no CDN-managed block in live robots.txt"
-  fi
-  # Cloudflare's Content Signals Policy text; served on its own by Free zones without a robots.txt.
-  if grep -qi 'agree to abide by the' "$live" \
+  elif grep -qi 'agree to abide by the' "$live" \
      && ! grep -qi 'agree to abide by the' ./public/robots.txt 2>/dev/null; then
     echo "FAIL live robots.txt carries a CDN content-signals policy text the repo does not ship"
+  else
+    echo "OK   no CDN-managed block in live robots.txt"
   fi
 fi
 rm -f "$live"
@@ -150,10 +152,10 @@ the file (`16-search-console.md`).
 
 ## C3 — Host and scheme consolidation must be permanent
 
-**Explains:** split authority, and "Page with redirect" that never consolidates. Google treats
-`301`/`308` as a strong signal that the target should be canonical and `302`/`307` as only a weak
-one (verified 2026-10-14 —
-[HTTP status codes and Google's crawlers](https://developers.google.com/crawling/docs/troubleshooting/http-status-codes)). Exactly one of the four host/scheme variants
+**Explains:** split authority, and "Page with redirect" that never consolidates. Google's indexing
+pipeline uses a `301`/`308` as *"a signal that the redirect target should be canonical"*; for `302`/`307` it
+*"doesn't use the redirect as a signal that the redirect target should be canonical"* (verified
+2026-10-14 — [Redirects and Google Search](https://developers.google.com/search/docs/crawling-indexing/301-redirects)). Exactly one of the four host/scheme variants
 may answer `200` — the canonical origin in `BASE`. The other three must redirect permanently and
 land on it. Two variants both answering `200` is the defect itself, not two passes.
 
@@ -214,6 +216,12 @@ hop_count "$BASE/old-path"
 
 **Fix:** move aliases from the framework's HTML-emitting redirect map to platform-level rules
 (`_redirects`, edge redirect rules) so they resolve in a single HTTP hop.
+
+**Not for the host/scheme variants.** C4 is for content aliases and redirect-map entries. The four
+`http(s)://(www.)DOMAIN/` variants belong to C3, which checks where the chain ends, not its length:
+`http://www.DOMAIN/` taking two hops (Always Use HTTPS, then the www rule) is accepted in
+`08-cloudflare-deploy.md` (www → apex), or collapsed to one by widening the rule there. Do not feed
+those URLs to `hop_count` and report a second verdict on them.
 
 ## C5 — Every sitemap URL must return 200
 

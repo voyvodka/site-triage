@@ -31,7 +31,7 @@ JPG/PNG/WEBP/GIF under 5 MB and not SVG, and they disagree on X's preferred rati
 
 | Package | Latest stable | Published | Note |
 |---|---|---|---|
-| `satori` | 0.56.1 | 2026-10-13 | **23 minor versions in under two weeks**: 0.34.0 (2026-10-02) → 0.56.1, including two breaking layout changes — see "Two paths, two layout engines" below. `0.0.30-beta.1` still sits on the `beta` tag — it is **older** than `latest`, not newer |
+| `satori` | 0.56.1 | 2026-10-13 | **23 minor versions in under two weeks**: 0.34.0 (2026-10-02) → 0.56.1, including three breaking layout changes — see "Two paths, two layout engines" below. `0.0.30-beta.1` still sits on the `beta` tag — it is **older** than `latest`, not newer |
 | `@resvg/resvg-js` | 2.6.2 | 2024-03-26 | Stable line is over two years old; `2.7.0-alpha.2` (2026-01-28) sits on `next` (dist-tags re-checked 2026-10-14) |
 | `@vercel/og` | 1.0.3 | 2026-09-22 | Still pins `satori@0.33.5` — it has not picked up any of the 0.34+ changes |
 | `astro-og-canvas` | 0.13.2 | 2026-09-15 | Astro-specific wrapper |
@@ -45,12 +45,16 @@ re-checked 2026-09-25 — npm metadata; the README claim still carries its 2026-
 
 Which satori you get decides which CSS works, so pick the path first (verified 2026-10-14 —
 satori README at tags `0.33.5` and `0.56.1`, GitHub releases, and the commit messages of
-[#841](https://github.com/vercel/satori/pull/841) and [#847](https://github.com/vercel/satori/pull/847)):
+[#841](https://github.com/vercel/satori/pull/841), [#847](https://github.com/vercel/satori/pull/847) and
+[#855](https://github.com/vercel/satori/pull/855)):
 
 | | `@vercel/og@1.0.3` → satori **0.33.5** | Direct `satori` **0.56.1** |
 |---|---|---|
 | Layout engine | Yoga | **Taffy** (0.37.0) — flexbox, grid and block layout |
 | Default `display` | **`flex`** for every element; a `div` with several children needs `flex`, `contents` or `none` | **Browser defaults** (0.38.1): `div`, `p`, headings and lists are blocks, everything else inline |
+| Default `position` | **`relative`** | **`static`** (0.42.0) — insets are ignored on static elements; an absolute child is placed against its nearest positioned ancestor, or the root |
+| Default `boxSizing` | **`border-box`** — padding and border sit inside `width`/`height` | **`content-box`** (0.42.0), image sizes included — padding and border are added on top |
+| Default `borderStyle` | **`solid`** — a `borderWidth` alone draws a border | **`none`** (0.42.0) — a border without a style is neither drawn nor laid out |
 | Grid | Not supported | Supported (0.37.0; shorthands 0.43.0); `subgrid` throws |
 | `aspectRatio` | Not in the supported table | Supported (0.39.0) |
 | Fonts | TTF, OTF, WOFF — **no WOFF2** | TTF, OTF, WOFF, **WOFF2** (0.55.0) |
@@ -60,10 +64,21 @@ satori README at tags `0.33.5` and `0.56.1`, GitHub releases, and the commit mes
 change is in commit #847: *"a `div` without `display: flex` no longer lays out its children as
 flex items."* 0.37.0's release notes likewise omit the Taffy switch (#841), which also changed
 defaults — `flex-shrink` now defaults to 1, flex items don't shrink below their content, top-level
-margins are respected. A tree written for 0.33.5 that leans on implicit flex renders differently
-after an upgrade. **Set `display: 'flex'` explicitly on every container that should be flex** —
-the sample below does, so it renders the same on both paths — and re-check the output after any
-satori bump.
+margins are respected. The third break is silent too: 0.42.0's release notes list only a color
+change, while #855, first shipped in 0.42.0, is marked *"**Breaking:** `position`, `box-sizing` and
+borders use their CSS initial values"* (verified 2026-10-14 — [vercel/satori#855](https://github.com/vercel/satori/pull/855)
+and the 0.41.0…0.42.0 compare; the 0.33.5 defaults are from its README's CSS table, `boxSizing`
+from the table #849 added just before the switch). The size change is large: a 1200×630 root
+with `padding: '80px'` and no `boxSizing` laid out at 1200×630 on 0.33.5 and at **1360×790** on
+0.56.1 (rendered 2026-10-14 on both versions). A tree written for 0.33.5 renders differently after
+an upgrade. **Set `display: 'flex'` on every container that should be flex, `boxSizing:
+'border-box'` on every box with padding or a border, `position: 'relative'` on any container its
+absolute children should be placed against, and a `borderStyle` on every border.** The sample
+below sets `display` and `boxSizing`, and its boxes landed identically on 0.33.5 and 0.56.1
+(rendered 2026-10-14, text omitted). Drop `display` and the paths diverge once the root holds
+in-flow children such as the title and tagline divs; drop `boxSizing` and they diverge once a box
+gets padding or a border.
+Re-check the output after any satori bump.
 
 **Image fetching is guarded.** 0.29.1 hardened satori's SSRF guard: it rejects hostnames that
 resolve to private IPs on Node, blocks `.internal` hosts and validates every redirect hop (verified
@@ -95,7 +110,7 @@ const tree = {
   type: 'div',
   props: {
     style: {
-      width: '1200px', height: '630px', display: 'flex',
+      width: '1200px', height: '630px', display: 'flex', boxSizing: 'border-box',
       background: 'linear-gradient(135deg, #0a0b0e 0%, #1e2229 100%)',
       fontFamily: 'IBM Plex Sans', color: '#e7ecf2',
     },
@@ -124,6 +139,11 @@ Both call shapes above are current: `satori(element, options)` with `width` / `h
 `new Resvg(svg, opts).render().asPng()` with the `fitTo: { mode, value }` object
 (satori options verified 2026-10-14 — [satori README](https://github.com/vercel/satori) at
 `0.56.1`; resvg-js verified 2026-08-14 — [resvg-js README](https://github.com/thx/resvg-js)).
+Direct satori also takes **`onStyleError`** (0.38.2, [#851](https://github.com/vercel/satori/pull/851)):
+without it an invalid or unsupported inline declaration throws and fails the whole render; with it
+the declaration is ignored and its error passed to the callback. It is absent from the 0.33.5
+README, so the `@vercel/og` path does not have it (verified 2026-10-14 — satori README at both
+tags).
 
 ## Typographic guidance inside OG
 
@@ -169,7 +189,8 @@ request (verified 2026-08-14 — Astro endpoints + on-demand-rendering docs via 
 - **Layout engine is a CSS subset, not CSS — and which subset depends on the version.** On 0.33.5
   (`@vercel/og`), `display` accepts `flex`, `block`, `contents`, `none` and `-webkit-box` and
   **defaults to `flex`**; `position` accepts `relative`, `static` and `absolute`, defaulting to
-  `relative`; grid and `aspectRatio` are absent. `gap`, `linear-gradient`/`radial-gradient`
+  `relative` (on 0.56.1 it defaults to `static` — see the path table); grid and `aspectRatio` are
+  absent. `gap`, `linear-gradient`/`radial-gradient`
   backgrounds, `filter` and `maskImage` are in its supported table. On 0.56.1, properties marked
   "Supported" *"behave as in browsers"*; `display: table`, `ruby` and two-value syntax throw, and
   the table lists the remaining differences (verified 2026-10-14 — satori README CSS table at both

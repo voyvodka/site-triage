@@ -31,13 +31,15 @@ not apply to them, so a line for them is coverage on paper only (table below).
 User-agent: *
 Allow: /
 
-# Every token below honours robots.txt per its operator — verified 2026-10-14.
+# Every token below honours robots.txt per its operator, except where noted — verified 2026-10-14.
 
 # OpenAI (https://developers.openai.com/api/docs/bots)
 User-agent: GPTBot
 Allow: /
 User-agent: OAI-SearchBot
 Allow: /
+# Not covered by the line above: OpenAI names only OAI-SearchBot and GPTBot as robots.txt tags,
+# and OAI-AdsBot "only visits pages submitted as ads". A Disallow here is undocumented.
 User-agent: OAI-AdsBot
 Allow: /
 
@@ -53,7 +55,7 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-# Apple (https://support.apple.com/en-us/119829)
+# Apple — a control token, not a crawler: "Applebot-Extended does not crawl webpages" (https://support.apple.com/en-us/119829)
 User-agent: Applebot-Extended
 Allow: /
 
@@ -78,6 +80,20 @@ Allow: /
 Sitemap: https://DOMAIN/sitemap.xml
 ```
 
+**Apple's opt-outs are split across three mechanisms**, and only one is in robots.txt (verified
+2026-10-14 — [About Applebot](https://support.apple.com/en-us/119829)):
+
+- `Applebot-Extended` `Disallow` opts out of training *"Apple's general purpose foundation
+  models"*. Pages that disallow it *"can still be included in search results"*.
+- `nosnippet` (`<meta name="robots" content="nosnippet">`, or `<meta name="applebot" …>` for Apple
+  alone) opts out of the broad world-knowledge answers: Apple *"will not use data tagged nosnippet
+  as additional context and up-to-date content when AI models are used to generate output"*.
+- `X-Robots-Tag: applebot: nosnippet` carries the same directive as an HTTP header, for non-HTML
+  files or server-level rules.
+
+Apple adds that even with both, Applebot may still crawl and the content *"will remain discoverable
+through Spotlight, Siri, and Safari"*.
+
 **User-triggered fetchers — deliberately not in the template.** Each operator says the fetcher acts
 on a user's request and may not follow robots.txt, so a `Disallow` for it is a request, not a
 control. Block them at the edge (WAF, bot rules) if blocking is the goal (all verified 2026-10-14
@@ -88,9 +104,19 @@ on the operator pages linked in the template, Google's on
 |-------|------------------|
 | `ChatGPT-User` | *"Because these actions are initiated by a user, robots.txt rules may not apply."* Was in this template until 0.3.x |
 | `Perplexity-User` | *"Since a user requested the fetch, this fetcher generally ignores robots.txt rules."* |
-| `Meta-ExternalFetcher` | Meta says it may bypass robots.txt because the fetches are user-requested. ⚠️ Read through a fetch tool's summary on 2026-10-14 — Meta's page refuses direct requests, so this wording and the `Meta-WebIndexer` entry above are not quoted from raw text |
+| `Meta-ExternalFetcher` | *"fetches individual links at a user's request … Accordingly, this crawler may bypass robots.txt rules."* |
 | `Amzn-User` | *"it may not follow all robots.txt directives"* |
 | `Google-Agent`, `Google-GeminiNotebook` | Listed under Google's user-triggered fetchers, which *"generally ignore robots.txt rules"*. `Google-Agent` is Google's agent acting on user requests. `Google-GeminiNotebook` succeeds `Google-NotebookLM`, which Google lists as a former agent supported until August 2026 — an older robots.txt naming it addresses nothing now |
+
+`Meta-WebIndexer`, in the template, is on the same Meta page: *"Allowing Meta-WebIndexer in your
+robots.txt file helps us cite and link to your content in Meta AI's responses."* (verified
+2026-10-14).
+
+<!-- Fetching Meta's crawler page: a browser User-Agent without navigation headers gets a 400.
+     Send Accept: text/html…, Sec-Fetch-Mode: navigate, Sec-Fetch-Dest: document and
+     Upgrade-Insecure-Requests: 1 for the HTML page, or curl with its default curl/x.y User-Agent
+     for a Markdown copy;
+     both carry the wording quoted above. Re-fetch that way rather than marking it unquoted. -->
 
 **Removed on 2026-08-14, do not put back:**
 
@@ -103,9 +129,10 @@ on the operator pages linked in the template, Google's on
 
 **`Content-Signal` is deliberately not in this template.** It is a policy declaration. None of the
 operator pages linked above mentions it; the one documented consumer is Cloudflare's own Browser
-Run `/crawl` endpoint, which rejects a crawl whose declared purpose the site's `Content-Signal`
-sets to `no` (verified 2026-10-14 —
-[/crawl endpoint](https://developers.cloudflare.com/browser-run/quick-actions/crawl-endpoint/)).
+Run `/crawl` endpoint, which rejects with a `400` a crawl whose declared purpose the site's
+`Content-Signal` sets to `no`, or whose declared content-use level is more permissive than the
+site's `use` level (verified 2026-10-14 —
+[/crawl endpoint: Content Signals](https://developers.cloudflare.com/browser-run/quick-actions/crawl-endpoint/#content-signals)).
 See `06-agent-ready.md`. Add it if the site wants to state intent, not because it changes how the
 major crawlers behave.
 
@@ -193,7 +220,7 @@ Policy: https://github.com/USER/REPO/blob/main/SECURITY.md
 
 RFC 9116 §2.5.5: *"It is RECOMMENDED that the value of this field be less than a year into the
 future to avoid staleness"* (verified 2026-10-14 —
-[RFC 9116](https://www.rfc-editor.org/rfc/rfc9116#section-2.5.5)). Put the renewal in a calendar;
+[RFC 9116](https://www.rfc-editor.org/rfc/rfc9116.html#section-2.5.5)). Put the renewal in a calendar;
 an expired file is treated as stale.
 
 **Verify before including**:

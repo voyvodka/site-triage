@@ -20,12 +20,14 @@ done
 # www → apex redirect (must be 301) — on a real page AND a random path. A random path alone
 # passes even when a Worker redirect runs behind asset serving and never sees real pages
 # (08-cloudflare-deploy.md, routing order).
-curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/" | head -3
-curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/test-$(date +%s)" | head -3
+# Status and location on one line; `head -3` cut off `location`, which sits further down.
+curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/" | grep -iE '^(HTTP|location)' | tr -d '\r' | paste -sd' ' -
+curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/test-$(date +%s)" | grep -iE '^(HTTP|location)' | tr -d '\r' | paste -sd' ' -
 # …and the http:// legs, which a rule matching only https://www.* leaves at two hops
-# (08-cloudflare-deploy.md, www → apex).
-curl -sIL -o /dev/null -w '%{num_redirects} hops -> %{url_effective}\n' "http://www.DOMAIN/"
-curl -sIL -o /dev/null -w '%{num_redirects} hops -> %{url_effective}\n' "http://DOMAIN/"
+# (08-cloudflare-deploy.md, www → apex). %{http_code} tells an unreachable host (000) from a
+# clean 0-hop answer — both print "0 hops -> http://…" otherwise.
+curl -sIL --max-time 10 -o /dev/null -w '%{num_redirects} hops -> %{url_effective} %{http_code}\n' "http://www.DOMAIN/"
+curl -sIL --max-time 10 -o /dev/null -w '%{num_redirects} hops -> %{url_effective} %{http_code}\n' "http://DOMAIN/"
 
 # Agent-ready signals
 curl -sI --resolve DOMAIN:443:$IP "https://DOMAIN/" | grep -i "^link:"
@@ -43,7 +45,12 @@ done
 ```
 
 Expected:
-- All real paths **200**; `www.*` **301** on both the real page and the random path
+- All real paths **200**; `www.*` **301** with `location: https://DOMAIN/…` on both the real page
+  and the random path
+- `http://DOMAIN/` → `1 hops -> https://DOMAIN/ 200`. `http://www.DOMAIN/` → the same in 1 hop
+  when the www rule matches both schemes, or `2 hops -> https://DOMAIN/ 200` with the HTTPS-only
+  rule — both acceptable (`08-cloudflare-deploy.md`, www → apex). A trailing `000` means the host
+  did not answer: not checked, not a pass
 - `/random-unknown-path` — **200** on an SPA (index fallback), **404** on a static or SSR site. Decide
   which shape the site is *before* reading this line, otherwise it proves nothing either way.
 - `Link:` header present with the relations the site declares in `_headers` (C8 checks each one)
@@ -58,7 +65,10 @@ Expected:
 > Probe syntax executed against a live public host on **2026-08-14** (curl 8.x / LibreSSL, macOS):
 > the `--resolve` form, the `-w 'hops=%{num_redirects} status=%{http_code} final=%{url_effective}'`
 > format string, and every `grep` above run as written. A `grep` that finds nothing exits 1 and
-> prints nothing — that is a *finding* (header absent), not a broken command.
+> prints nothing — that is a *finding* (header absent), not a broken command. The www status +
+> `location` one-liner and the http:// hop probes with `%{http_code}` replaced earlier forms on
+> **2026-10-14** and were run as written against live public hosts that day, including an
+> unresolvable one (`0 hops -> http://… 000`).
 
 These probes overlap deliberately with `14-diagnostic-checks.md`, which is the deeper set. Use
 §11.1 as the fast post-deploy smoke test; when a probe here comes back wrong, switch to

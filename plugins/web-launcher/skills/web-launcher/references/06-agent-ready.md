@@ -5,8 +5,10 @@
 > **Verified 2026-10-14 · review by 2026-12-13.** Claims that can rot carry their own date and
 > source inline. A claim without one has not been checked — treat it as unverified, not as fact.
 >
-> Two of the four signals this file covers have **no measurable effect on crawlers today**. Read
-> the priority matrix before recommending anything here. Claims re-read on 2026-10-14 carry that
+> One of the four signals this file covers — `Content-Signal`, with its AIPREF draft counterpart
+> `Content-Usage` — has **almost no effect on crawlers today**: Cloudflare's own `/crawl` endpoint
+> is its one documented consumer, and nothing is known to parse `Content-Usage`. Web Bot Auth
+> does nothing without real keys. Read the priority matrix before recommending anything here. Claims re-read on 2026-10-14 carry that
 > date; a few rows keep an earlier one where today's pass did not re-read the source.
 
 Parallel to classic SEO and GEO, a new discovery layer is forming: **AI agents that programmatically consume your site** (ChatGPT tool use, Perplexity retrieval, Claude MCP servers, custom enterprise bots). This file covers four signals for that layer — different surface from classic crawlers.
@@ -33,10 +35,10 @@ not documented in its `llms.txt`; the API above is)
 
 **Only signal 1 is "always".** `Link:` headers are ratified and actually parsed; the priority matrix
 near the end of this file rates its *Skip if* as "Never". The other three are governed by that
-matrix, and two of them (`Content-Signal`, `Content-Usage`) have almost no technical effect today
-(Cloudflare's own `/crawl` endpoint is the one documented consumer, see signal 2) —
-ship them when the user wants to state intent or wants a scanner green, and say which of the two
-you are doing. Web Bot Auth is worth it only with real keys and real outbound signing.
+matrix. Signal 2 has almost no technical effect today: `Content-Signal` has one documented
+consumer, Cloudflare's own `/crawl` endpoint, and its AIPREF counterpart `Content-Usage` (covered
+under signal 2) has none — ship them when the user wants to state intent or wants a scanner green,
+and say which of the two you are doing. Web Bot Auth is worth it only with real keys and real outbound signing.
 
 ### 1. `Link:` response headers (RFC 8288)
 
@@ -116,9 +118,11 @@ app.use((_req, res, next) => {
 Cloudflare 2025 robots.txt extension. Declares preference for how AI systems may use your content — independent of `Allow`/`Disallow`. **Not a hard block; a policy signal.**
 
 **Watch for edge injection.** On Cloudflare, **Bot Preference Sync** generates managed
-`robots.txt` directives from the zone's Search, Agent and Training AI bot policies whenever one is
-set to *Block*, *Block on pages with ads* or (Training) *Disallow*, merging them into the origin's
-file or creating one. The managed block carries `Content-signal: search=yes, ai-train=no,
+`robots.txt` directives from the zone's Search, Agent and Training AI bot policies when the
+*Enable Bot Preference Sync* toggle is on and at least one policy is set to *Block*, *Block on
+pages with ads* or (Training) *Disallow*, merging them into the origin's file or creating one. With
+sync on, Training *Disallow* also turns on edge blocking for AI training crawlers, mixed-use
+crawlers excluded. The managed block carries `Content-signal: search=yes, ai-train=no,
 use=reference` and Cloudflare's Content Signals Policy comment text, which can invert what the
 repository declares. **Free-plan zones with no `robots.txt` of their own and no managed setting are
 served the Content Signals Policy text** — definitions only, no preferences. Search Console may
@@ -134,6 +138,17 @@ Search allowed. That is per Cloudflare's page, written ahead of the date (last u
 For a domain added after that date, check the AI bot policies in the dashboard rather than
 assuming the old default.
 
+**Existing zones are affected too.** The same page says that from that date *"Mixed-purpose
+crawlers that combine Search and Training will also be blocked by all configurations to block AI
+training, including the legacy 'Block AI bots' option"* — so a zone that switched the old toggle on
+years ago may now block crawlers that also feed search, where before the toggle excluded them.
+Cloudflare's changelog says only that such crawlers *"will be affected by the new defaults to block
+Training"* and does not mention the legacy toggle. Same caveat: written ahead of the date, not
+confirmed as switched (verified 2026-10-14 — [Block AI Bots](https://developers.cloudflare.com/bots/additional-configurations/block-ai-bots/);
+[New options to manage AI traffic](https://developers.cloudflare.com/changelog/post/2026-07-01-ai-traffic-options/)).
+On a zone with the legacy toggle on, check which mixed-purpose crawlers it now blocks before
+diagnosing a missing AI-search presence anywhere else.
+
 ```
 Content-Signal: search=yes, ai-train=yes, ai-input=yes
 ```
@@ -144,10 +159,19 @@ Three established axes:
 - **`ai-input`** — real-time AI assistant retrieval (ChatGPT-User, Claude-User)
 
 A fourth, **`use=immediate|reference|full`**, is in testing: how much a crawler may keep after
-access — interact and keep nothing, index/excerpt/link back, or summarize and reproduce.
-Cloudflare adds `use=reference` to managed `robots.txt` files (verified 2026-10-14 — same
-robots.txt setting page). Only Cloudflare's `/crawl` is documented to enforce it; leave it out of
-a hand-written file unless the user wants to state that preference.
+access. **Two Cloudflare pages define the levels differently.** The robots.txt setting page:
+`immediate` *"Interact, but store and reuse nothing"*, `reference` *"Index, excerpt, and link
+back"*, `full` *"Summarize and reproduce"*. The `/crawl` page: `immediate` *"Ephemeral,
+single-response use, where content is not retained"*, `reference` *"Content may be retained,
+indexed, or cited"*, `full` *"Unrestricted use, including AI training"*. Cloudflare adds
+`use=reference` to managed `robots.txt` files (verified 2026-10-14 — [robots.txt
+setting](https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/);
+[Crawl endpoint: Content Signals](https://developers.cloudflare.com/browser-run/quick-actions/crawl-endpoint/#content-signals),
+last updated 2026-10-10). Only Cloudflare's `/crawl` is documented to enforce it, and its
+`contentUse` accepts only `reference` or `full` (default `full`), so **`use=immediate` rejects
+every `/crawl` request** and `use=reference` rejects the default one. Leave it out of a
+hand-written file unless the user wants to state that preference, and never write
+`use=immediate` without saying it shuts Cloudflare's crawler out entirely.
 
 **Decision matrix — pick row matching site type**:
 
@@ -294,13 +318,21 @@ last updated 2026-10-08):
   `application/json`.
 - **Sign the directory response itself**: one `Signature` / `Signature-Input` pair per key, with
   `tag="http-message-signatures-directory"`, `keyid` set to the key's JWK thumbprint, and
-  `@authority` covered with the `req` parameter.
+  `@authority` covered with the `req` parameter. The same page lists `req` among the component
+  parameters that make verification fail; read that list as applying to the outbound requests
+  Cloudflare verifies — `req` only means something in a response signature — but the page does
+  not say so (⚠️ unreconciled on the page, 2026-10-14).
 - Sign outbound requests per RFC 9421 and send **`Signature-Agent`** naming the directory's
-  `https://` origin, listed among the covered components in `Signature-Input`. Cloudflare wants it
-  as a quoted string (`Signature-Agent: "https://DOMAIN"`) and says the dictionary form
-  (`sig2="https://…"`) **will fail verification** — while the WG draft specifies the dictionary
-  form and keeps the string form as legacy (`draft-ietf-webbotauth-httpsig-protocol-00` §5.2.1,
-  Appendix E). If the receivers are on Cloudflare, send the string form.
+  `https://` origin, listed among the covered components in `Signature-Input`. **A signer that
+  follows the WG draft fails on Cloudflare, for two reasons.** The draft says *"Signers MUST send
+  the dictionary form"* (`sig1="https://…"`; a verifier *"MAY accept"* the legacy string) and
+  covers the header as `"signature-agent";key="sig1"`. Cloudflare says the dictionary form **will
+  fail verification**, and its Limitations list the `key` component parameter among those that
+  make verification fail (verified 2026-10-14 —
+  [draft-ietf-webbotauth-httpsig-protocol-00](https://www.ietf.org/archive/id/draft-ietf-webbotauth-httpsig-protocol-00.txt)
+  §5.2.1, Appendix E; Cloudflare page above, "Limitations"). For receivers on Cloudflare, send the
+  string form (`Signature-Agent: "https://DOMAIN"`) and cover plain `"signature-agent"` — and say
+  that this deviates from the draft's MUST.
 
 **Audit**: `curl -sI https://DOMAIN/.well-known/http-message-signatures-directory | grep -iE '^(content-type|signature|signature-input):'`
 → expect `application/http-message-signatures-directory+json` plus both signature headers, not an
@@ -329,7 +361,7 @@ nothing.
 |---|---|---|
 | **RFC 8288** — Link headers | Stable IETF standard since 2017 | Published RFC |
 | **RFC 9421** — HTTP Message Signatures | Stable IETF standard since 2024 | Published RFC |
-| **Web Bot Auth** — directory, well-known URI, `Signature-Agent` | WG draft `draft-ietf-webbotauth-httpsig-protocol-00` (2026-09-01, expires 2027-03-05, intended Standards Track); Datatracker records it as replacing `draft-meunier-webbotauth-httpsig-protocol`. The two individual drafts Cloudflare's page still cites (`-directory-03`, `-architecture-02`) last reached `-05` and expired 2026-09-03. **No RFC** | [Datatracker](https://datatracker.ietf.org/doc/draft-ietf-webbotauth-httpsig-protocol/) |
+| **Web Bot Auth** — directory, well-known URI, `Signature-Agent` | WG draft `draft-ietf-webbotauth-httpsig-protocol-00` (2026-09-01, expires 2027-03-05; the draft's header reads *"Intended status: Standards Track"*, while Datatracker records no intended status); Datatracker records it as replacing `draft-meunier-webbotauth-httpsig-protocol`. The two individual drafts Cloudflare's page still cites (`-directory-03`, `-architecture-02`) last reached `-05` and expired 2026-09-03. **No RFC** | [Datatracker](https://datatracker.ietf.org/doc/draft-ietf-webbotauth-httpsig-protocol/) |
 | **`Content-Signal`** | Cloudflare convention, **not IETF**; enforced only by Cloudflare's own `/crawl` | See §2 above |
 | **`Content-Usage`** (AIPREF) | Both drafts active as of 2026-10-14 — `attach-05` (expires 2027-02-20), `vocab-08` (expires 2027-03-18), intended Proposed Standard; **no RFC published by the WG**, no crawler known to parse it | [Datatracker](https://datatracker.ietf.org/wg/aipref/documents/) |
 | **`Accept: text/markdown`** negotiation | Emerging convention, no ratification | — |
