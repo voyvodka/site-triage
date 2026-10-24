@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# A small static site with a brand kit and no discoverability files, so a Mode C run that
-# drifts into SEO or deploy work has something to report.
+# No robots.txt or sitemap on purpose: a Mode C run that drifts into SEO has something to report.
 set -euo pipefail
 mkdir -p brand public src
 cat > brand/README.md <<'MD'
