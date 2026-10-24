@@ -72,7 +72,7 @@ Expected:
 
 These probes overlap deliberately with `14-diagnostic-checks.md`, which is the deeper set. Use
 §11.1 as the fast post-deploy smoke test; when a probe here comes back wrong, switch to
-`14-diagnostic-checks.md` (C1–C10) to find the cause rather than debugging it from this file.
+`14-diagnostic-checks.md` (C1–C11) to find the cause rather than debugging it from this file.
 
 ## 11.2 External validator matrix
 

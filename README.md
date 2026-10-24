@@ -82,7 +82,7 @@ Ask it directly when you already know the question:
 
 | Area | What it does |
 |---|---|
-| **Diagnosis** | Maps each Search Console reason to its cause; ten runnable checks for redirect chains, edge-injected `robots.txt`, temporary redirects, hop counts, sitemap health, canonical mismatches, SSR shell leaks, header delivery, and social cards |
+| **Diagnosis** | Maps each Search Console reason to its cause; eleven runnable checks for redirect chains, edge-injected `robots.txt`, temporary redirects, hop counts, sitemap health, canonical mismatches, SSR shell leaks, header delivery, social cards, and a Cloudflare AI-bot policy that blocks Googlebot |
 | **Discoverability** | `robots.txt`, sitemaps, `llms.txt`, `security.txt`, JSON-LD, the full meta head, multi-page canonical and breadcrumb structure |
 | **GEO** | Scores AI-search signals with GeoDaddy, and says where that tool's scoring disagrees with this one — including one finding of its own that is measurably wrong |
 | **Deployment** | Cloudflare Workers: `wrangler` config, headers, redirects, custom domain and SSL, plus the failure modes that cost real hours |

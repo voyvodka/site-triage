@@ -42,7 +42,8 @@ BASE="https://example.com"
 ```
 
 Run them in the order below when diagnosing "why is this page not indexed": C1 and C7 explain most
-404 and redirect reasons, C3 and C4 explain most signal-consolidation problems.
+404 and redirect reasons, C3 and C4 explain most signal-consolidation problems. On a Cloudflare
+zone, run C11 when Google reports 403s or stops crawling.
 
 Every check prints `OK` or `FAIL` with the offending URL. Nothing prints on success except the
 `OK` line — silence means the check did not run.
@@ -383,6 +384,38 @@ fi
 Every check in this file prints a line. A clean run that printed nothing would be
 indistinguishable from a check that never executed, which is the failure mode this file's
 own contract exists to prevent.
+
+## C11 — Cloudflare's AI Training policy must not block Googlebot
+
+**Explains:** a Cloudflare zone that Google stops crawling — "Blocked due to access forbidden
+(403)" or pages dropping out — with nothing wrong in the repository. Since 2026-09-15 a Training
+policy of Block or Block on pages with ads also blocks Googlebot, Bingbot and Applebot; **Disallow
+AI Training** does not (verified 2026-10-24 — sources in `08-cloudflare-deploy.md`, "AI crawlers").
+Cloudflare zones only; diagnosis elsewhere skips it.
+
+Needs a Cloudflare API token with **Bot Management Read** on the zone (the permission the endpoint
+lists in Cloudflare's API schema, read 2026-10-24); `wrangler login` does not carry it. Without a
+token, read **Security Settings** > **Configure AI bot policies** in the dashboard instead and apply
+the same verdict.
+
+```bash
+ZONE_ID="..."; CF_API_TOKEN="..."   # never paste the token into a file you commit
+cfg=$(curl -s --max-time 15 -H "Authorization: Bearer $CF_API_TOKEN" \
+  "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/bot_management")
+train=$(printf '%s' "$cfg" | grep -o '"ai_training": *"[a-z_]*"' | sed 's/.*"\([a-z_]*\)"$/\1/')
+legacy=$(printf '%s' "$cfg" | grep -o '"ai_bots_protection": *"[a-z_]*"' | sed 's/.*"\([a-z_]*\)"$/\1/')
+case "$train" in
+  block|only_on_ad_pages) echo "FAIL Training=$train also blocks mixed-use crawlers (Googlebot, Bingbot, Applebot)" ;;
+  disallow|disabled)      echo "OK   Training=$train: mixed-use crawlers are not blocked" ;;
+  *) echo "?    ai_training not readable (token scope or ZONE_ID): $(printf '%s' "$cfg" | head -c 200)" ;;
+esac
+case "$legacy" in ""|disabled) ;; *) echo "WARN legacy ai_bots_protection=$legacy is still set; its effect next to the policies is undocumented" ;; esac
+```
+
+⚠️ Added 2026-10-24. The endpoint was read on a real zone that day (it returned Training =
+`disallow` with the legacy field still `block`: the OK and WARN lines), and the parsing was run
+against that response shape and against an authentication error. The FAIL branch was not observed
+on a live zone: no setting was changed to provoke it.
 
 ## C10 — Find behavioural claims that nothing verifies (meta-check)
 
