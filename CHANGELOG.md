@@ -10,6 +10,8 @@ releases each bundled several pull requests or direct commits, and no single num
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-25
+
 ### Changed
 
 - The skill description no longer lists Turkish report labels; `16-search-console.md` gains a Turkish column for every Page indexing reason, sourced (#20).
@@ -255,7 +257,8 @@ releases each bundled several pull requests or direct commits, and no single num
   `-05` until 2027-02-20, `vocab` is at `-07`, and `Content-Usage` stays intent-only.
 - `$schema` added to `plugin.json`, pointing at the SchemaStore entry.
 
-[Unreleased]: https://github.com/voyvodka/site-triage/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/voyvodka/site-triage/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/voyvodka/site-triage/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/voyvodka/site-triage/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/voyvodka/site-triage/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/voyvodka/site-triage/compare/v0.4.0...v1.0.0
