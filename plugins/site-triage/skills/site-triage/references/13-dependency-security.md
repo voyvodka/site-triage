@@ -90,12 +90,16 @@ updates:
 >   `semver-major-days` on the `github-actions` block would do nothing.
 > - `include` / `exclude` take up to 150 entries each, wildcards allowed; `exclude` wins.
 >
-> **Supported package-manager versions** (verified 2026-10-14 —
-> [supported ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)):
-> npm v7–v11, **pnpm v7–v10**. ⚠️ The pnpm 12 this file pins in §13.3 and npm 12 are both outside
-> the documented range. Nothing on the page says what Dependabot does with a newer lockfile; if
-> its PRs fail or rewrite `pnpm-lock.yaml` oddly, that gap is the first suspect, and Renovate is the
-> alternative to evaluate.
+> **Supported package-manager versions** (verified 2026-10-24 —
+> [Dependabot now supports npm 12, pnpm 11 and 12, and Bun 1.4](https://github.blog/changelog/2026-10-20-dependabot-now-supports-npm-12-pnpm-11-and-12-and-bun-1-4),
+> 2026-10-20): Dependabot keeps updating projects on **npm 12, pnpm 11 and 12, and Bun 1.4**. The
+> [supported ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)
+> table still reads npm v7–v11 and pnpm v7–v10 (re-read 2026-10-24); the changelog is the newer
+> source. ⚠️ Known limitation, same post: *"When pnpm writes `pnpm-lock.yaml` as two YAML
+> documents"*, *"the dependency graph doesn't detect the dependencies in that file yet"* — version
+> updates keep working, but *"Dependabot alerts and security updates won't be created for those
+> dependencies, and existing alerts for them may close."* A repo on pnpm 12 can therefore look
+> covered while getting no security alerts; check that the dependency graph lists its packages.
 
 ### Option B: Renovate (more configurable, supports automerge)
 
@@ -217,7 +221,7 @@ SHA-pinned per §13.7. What changed since the previous major-version generation 
 | `actions/setup-node` | v4 | **v7** | `v7.1.0`, 2026-10-08 |
 | `pnpm/action-setup` | v4 | **v6** | `v6.1.0`, 2026-09-05 — adds pnpm 12 support. ⚠️ The floating `v6` tag still points at `v6.0.10` (`0977fd99…`, re-checked 2026-10-14), so pin the `v6.1.0` SHA, not `@v6`, for pnpm 12 |
 | `gitleaks/gitleaks-action` | v2 | **v3** | `v3.0.0`, 2026-05-30 |
-| `github/codeql-action` | v3 | **v4** | tag `v4.38.3` (2026-10-08) |
+| `github/codeql-action` | v3 | **v4** | tag `v4.39.1` (2026-10-21, re-checked 2026-10-24) |
 
 Four things that bite when copying an older version of this file:
 
@@ -238,8 +242,8 @@ Four things that bite when copying an older version of this file:
   existing. **pnpm 12 is `latest`** (`12.11.2`; `latest-11` is `11.28.2`, `latest-10` is
   `10.34.6`; `npm view pnpm dist-tags`, 2026-10-14), so the example pins `version: 12`. The
   action's README reads *"This action supports pnpm v12 and earlier"* and says it can stay paired
-  with `actions/setup-node` for v11 and v12 (re-read 2026-10-14). Remember Dependabot documents
-  pnpm only up to v10 (§13.1). The alternative, [`pnpm/setup`](https://github.com/pnpm/setup), is
+  with `actions/setup-node` for v11 and v12 (re-read 2026-10-14). Dependabot supports pnpm 12, but not
+  yet a two-document `pnpm-lock.yaml` for alerts (§13.1). The alternative, [`pnpm/setup`](https://github.com/pnpm/setup), is
   at **`v3.1.1`** (2026-10-10). It installs the standalone pnpm binary plus a runtime in one step,
   replacing `actions/setup-node`, and supports **pnpm v11 and newer only**; its README adds that
   pnpm v11 publishes no Intel macOS binary, so use v12 there:
@@ -487,11 +491,11 @@ Attach to GitHub Release artifacts.
   > And do not take the tag from `releases/latest` blindly: for `github/codeql-action` it returns a
   > `codeql-bundle-v…` release, not the `v4.x` action tag — list releases and pick the `v4` line.
   >
-  > | Action | Tag | Commit SHA on 2026-10-14 |
+  > | Action | Tag | Commit SHA on 2026-10-14 (`codeql-action` row 2026-10-24) |
   > |---|---|---|
   > | `actions/checkout` | v7.0.1 (= `v7`) | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
   > | `actions/setup-node` | v7.1.0 (= `v7`) | `949feb2413d6458794dcd2491c4babbbce0c15c1` |
-  > | `github/codeql-action` | v4.38.3 (= `v4`) | `24c54180a607b1449ed407dd24f251e4e9147c8d` |
+  > | `github/codeql-action` | v4.39.1 (= `v4`) | `9b3254085494b55a0f7c4c2b3d2d52cc712ce370` |
   > | `pnpm/action-setup` | v6.1.0 | `ea17c68df8912ef543352723c149a84f56e3d413` |
   > | `pnpm/setup` | v3.1.1 (= `v3`) | `a0881977cd8ea73b1ed212236c99ca10dcc80cf4` |
   > | `gitleaks/gitleaks-action` | v3.0.0 (= `v3`) | `e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e` |
@@ -499,10 +503,10 @@ Attach to GitHub Release artifacts.
 
 - **socket.dev** — GitHub App reviews dep-change PRs for supply-chain red flags (install scripts,
   shell exec, network calls, typosquat). Zero config, high signal. ⚠️ "Free for public repos" was
-  imprecise: the published Free plan is metered, not repo-visibility-scoped — unlimited repos and
-  developers but **1,000 scans/month, 3 team members**, and open-source projects are told to ask
+  imprecise: the published Free plan is metered, not repo-visibility-scoped — unlimited public and
+  private repos but **1,000 scans/month and 1 developer seat**, and open-source projects are told to ask
   for a complimentary Team account (read from [socket.dev/pricing](https://socket.dev/pricing) on
-  2026-08-14; vendor pricing is the fastest-rotting claim in this file — re-read the page before
+  2026-10-24; vendor pricing is the fastest-rotting claim in this file — re-read the page before
   quoting a number to anyone).
 - **Production install** — CI deploys with `pnpm install --prod` (skip devDeps, reduce attack surface)
 
@@ -559,9 +563,9 @@ to a user as a commitment.
 | Dependabot | ✅ all repos | CVE alerts + auto-PR | GitHub native | current |
 | Renovate | ✅ all repos | Deeper config + more ecosystems | GitHub App | current |
 | `pnpm/yarn/npm audit` | ✅ | Node CVEs | CLI + CI | current |
-| socket.dev | ⚠️ metered: 1,000 scans/mo, 3 members, unlimited repos; OSS can request a free Team account | Supply chain / malicious detection | GitHub App | current |
+| socket.dev | ⚠️ metered: 1,000 scans/mo, 1 dev seat, unlimited repos; OSS can request a free Team account | Supply chain / malicious detection | GitHub App | current |
 | Snyk | ⚠️ per-product monthly test counts, not one pool: **200** Open Source (SCA), **100** Code (SAST), **100** Container, **300** IaC | CVE + license + IaC | GitHub App + CLI | current |
-| CodeQL | ✅ public repos; private needs paid Code Security | Static analysis | GitHub Actions | `codeql-action` `v4.38.3`, 2026-10-08 |
+| CodeQL | ✅ public repos; private needs paid Code Security | Static analysis | GitHub Actions | `codeql-action` `v4.39.1`, 2026-10-21 |
 | Gitleaks | ✅ CLI; ⚠️ the **Action** needs `GITLEAKS_LICENSE` on org-owned repos | Secret scan | Pre-commit + CI | CLI `v8.30.1`, 2026-03-21 |
 | TruffleHog | ✅ open source | Secret scan (deeper entropy) | Pre-commit + CI | `v3.99.2`, 2026-10-08 |
 | license-checker-rseidelsohn | ✅ | License audit | CLI + CI | `5.0.1`, 2026-05-27 |

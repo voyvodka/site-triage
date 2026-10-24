@@ -61,7 +61,7 @@
 4. **Backlinks from authoritative sources**:
    - GitHub repo README prominently links to site with quality screenshot
    - Hacker News (Show HN), Product Hunt launch, relevant subreddit launch post
-   - Personal site using `rel="me"` bidirectional link to brand site (verifies entity identity)
+   - Personal site using `rel="me"` bidirectional link to brand site — verifies the profile link on the fediverse; no search effect is documented (`12-indexing.md`)
 
 5. **Wikidata entry** (if notable) — feeds structured facts that Google's Knowledge Graph draws on.
    Takes weeks for curation. Do not call it the *strongest* entity signal — see `12-indexing.md`.
