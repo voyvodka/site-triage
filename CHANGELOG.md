@@ -8,6 +8,10 @@ Content carries verification dates; a release that only re-verifies claims still
 
 ## [Unreleased]
 
+### Changed
+
+- The skill now also triggers on the Turkish Search Console labels, such as "Tarandı: Şu anda dizine eklenmiş değil" and "Yönlendirmeli sayfa" (#18)
+
 ## [1.1.0] - 2026-10-24
 
 ### Added
