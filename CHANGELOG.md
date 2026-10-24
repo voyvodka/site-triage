@@ -11,6 +11,7 @@ Content carries verification dates; a release that only re-verifies claims still
 ### Added
 
 - Diagnostic check C11 reads a Cloudflare zone's AI Training policy and fails when it also blocks Googlebot, Bingbot and Applebot (#14)
+- Eval suite for `claude plugin eval`: triggering in English and Turkish, the three core rules, brand-only scope, and a mocked GeoDaddy run (#15)
 
 ### Fixed
 
