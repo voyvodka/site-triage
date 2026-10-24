@@ -13,3 +13,6 @@ docs/
 .DS_Store
 node_modules/
 *.log
+
+# Written by `claude plugin eval` on every run.
+**/evals/results/
