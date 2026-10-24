@@ -12,8 +12,9 @@ claude plugin eval plugins/site-triage --scaffold --no-publish --max-cost-usd 6
 
 | Case | Asserts |
 |---|---|
-| `trigger-gsc-en`, `trigger-gsc-tr` | The skill fires on a Search Console question (English and Turkish) and loads `16-search-console.md` |
-| `no-trigger` | The skill stays out of an unrelated coding question |
+| `trigger-gsc-en`, `trigger-gsc-tr`, `trigger-gsc-tr-labels` | The skill fires on a Search Console question (English, colloquial Turkish, Turkish report labels) and loads `16-search-console.md` |
+| `trigger-tr-label-only` | The skill fires on a Turkish status label alone, with no product name in the prompt |
+| `no-trigger`, `no-trigger-tr` | The skill stays out of an unrelated coding question (English and Turkish) |
 | `no-fabricated-verdicts` | With no network, no check is reported as passed or failed (rule 2) |
 | `healthy-redirects` | Slashless twins that 308 once are read as expected, not as defects (rule 1) |
 | `brand-only` | Mode C reports brand findings only (scan steps 1-3) |
@@ -30,6 +31,10 @@ Last full run (2026-10-24, Claude Code 2.1.310, three runs per case, `--ablation
 runs passed, 3.63 USD. `trigger-gsc-tr` did not fire the skill in one of three runs. That is a
 triggering result to act on in the skill's description, not a grader to loosen. With the default
 `--threshold 1.0` one such run makes the command exit 1.
+
+Turkish labels were then added to the description. The six trigger cases scored 18 of 18 runs both
+before and after the change, and the negatives 6 of 6. At three runs per case the suite cannot
+tell the two descriptions apart.
 
 Each run costs money: about 0.05-0.30 USD per run with the default model, three runs per case.
 Results land in `evals/results/`, which is gitignored.
