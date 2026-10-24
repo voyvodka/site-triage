@@ -118,6 +118,7 @@ These tripped past launches. Apply defensively without needing to open a referen
 - **A Worker script does not run for requests that match a static asset.** Host redirects and header logic look fine on random paths while every real page bypasses them. Set `run_worker_first` or move the logic to a zone rule, and test on a real page (`08-cloudflare-deploy.md`, routing order).
 - **Long `max-age` / `immutable` paths outlive a redeploy** in browsers, and no purge reaches a browser cache. Everything else revalidates by default — test with a cache-busting query string rather than asking for a purge.
 - **`wrangler login`'s OAuth token carries `zone:read` only** — it cannot create Redirect Rules, change SSL mode or purge cache. The www→apex redirect is a zone Redirect Rule the user adds in the dashboard; a Worker redirect is the fallback and needs `run_worker_first` (`08-cloudflare-deploy.md`).
+- **Cloudflare AI bot policy Training = Block blocks Googlebot too** (since 2026-09-15, with Bingbot and Applebot). "No training, still indexed" is **Disallow AI Training**. Check it with `14-diagnostic-checks.md` C11 before diagnosing a Cloudflare site's crawl drop anywhere else.
 - **`og:image` as SVG** — no social platform documents SVG support for cards (unverified either way — `14-diagnostic-checks.md` C9). Always PNG.
 - **Fonts in SVG logotypes** — `<text font-family="...">` depends on system font; outline to paths for distribution.
 - **Email in security.txt** — verify address actually exists before publishing (no MX on new domains = bounces).

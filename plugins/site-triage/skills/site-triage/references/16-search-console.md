@@ -157,7 +157,7 @@ report against them loosely, since the interface is localized (verified 2026-10-
 | Soft 404 | `pageFetchState: SOFT_404` | A thin or empty page returning 200 (C7) |
 | Server error (5xx) | `pageFetchState: SERVER_ERROR` | The origin, or an edge rule in front of it, failing for Googlebot. C1 prints a 5xx on a probe path; then read server logs and any CDN/WAF rule |
 | Blocked due to unauthorized request (401) | `pageFetchState: ACCESS_DENIED` | An auth gate on a public URL — staging protection left on, usually |
-| Blocked due to access forbidden (403) | `pageFetchState: ACCESS_FORBIDDEN` | Googlebot never sends credentials, so Google calls a 403 to it an error on the server's side. Usually a bot-blocking rule at the CDN or WAF |
+| Blocked due to access forbidden (403) | `pageFetchState: ACCESS_FORBIDDEN` | Googlebot never sends credentials, so Google calls a 403 to it an error on the server's side. Usually a bot-blocking rule at the CDN or WAF. On Cloudflare, first an AI bot policy with Training = Block or Block on pages with ads, which also blocks Googlebot since 2026-09-15 — `14` C11 (⚠️ the status code it returns is undocumented) |
 | URL blocked due to other 4xx issue | `pageFetchState: BLOCKED_4XX` | Any 4xx other than 401, 403, 404. Read the actual status with `curl -sI` and the URL Inspection tool |
 | URL blocked by robots.txt | `robotsTxtState: DISALLOWED` / `pageFetchState: BLOCKED_ROBOTS_TXT` | Check the **live** file, not the repository — a CDN may be injecting rules (C2) |
 | URL marked 'noindex' | `BLOCKED_BY_META_TAG` / `BLOCKED_BY_HTTP_HEADER` | Staging leftovers, or a shell served without the render path (C7) |

@@ -8,10 +8,15 @@ Content carries verification dates; a release that only re-verifies claims still
 
 ## [Unreleased]
 
+### Added
+
+- Diagnostic check C11 reads a Cloudflare zone's AI Training policy and fails when it also blocks Googlebot, Bingbot and Applebot (#14)
+
 ### Fixed
 
 - Dependabot advice now covers npm 12 and pnpm 11–12, and warns that two-document pnpm 12 lockfiles get no security alerts (#13)
 - Corrected the CodeQL action pin, Socket's free-plan seats, Bing's submission-quota quote and the ChatGPT URL; removed an unsourced `rel="me"` claim (#13)
+- Cloudflare AI bot advice now says Training = Block also blocks Googlebot and recommends Disallow AI Training instead (#14)
 
 ## [1.0.0] - 2026-10-14
 

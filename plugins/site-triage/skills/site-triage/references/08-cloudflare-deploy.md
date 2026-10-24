@@ -340,7 +340,7 @@ Give the user this checklist for `dash.cloudflare.com → DOMAIN`:
 | SSL/TLS → Edge Certificates | Always Use HTTPS | **On** | HTTP→HTTPS redirect; status code undocumented, assert it with `curl` |
 | SSL/TLS → Edge Certificates | Automatic HTTPS Rewrites | **On** | Mixed-content protection |
 | Security Settings (filter: Bot traffic) | Bot Fight Mode | **Off** | See below |
-| Security Settings | Configure AI bot policies | A deliberate choice per policy | See "AI crawlers" below |
+| Security Settings | Configure AI bot policies | Training: **Disallow AI Training** or Allow — never Block, which also blocks Googlebot | See "AI crawlers" below |
 | Rules → Redirect Rules | www → apex | 301, preserve path/query | The documented www redirect method |
 | Caching → Configuration | Invalidate Cache / Purge Cache | (only if you set long `max-age` yourself) | Defaults already revalidate |
 
@@ -388,23 +388,38 @@ answer later), **Agent** (real-time fetches on a person's behalf) and **Training
 mixed-purpose Search+Training crawlers) — each set to Block on all pages, Block on pages with ads,
 or Allow (verified 2026-10-14 —
 [Block AI Bots](https://developers.cloudflare.com/bots/additional-configurations/block-ai-bots/), page last updated 2026-07-01).
+Training has a fourth option, **Disallow AI Training**.
 
-The same page says that on 2026-09-15 Cloudflare "will set updated defaults for new domains":
-Training and Agent blocked on pages that display ads, Search allowed. ⚠️ That is Cloudflare's page
-written ahead of the date; no primary source read on 2026-10-14 confirms the switch happened. On a
-zone added after that date, open the policies page and read what is actually set before assuming
-either way.
+**Training = Block takes the site out of Google.** Cloudflare's announcement of the switch:
+*"Block and Block on pages with ads now apply to mixed-use crawlers, including Applebot, Bingbot,
+and Googlebot, so either setting impacts search as well as training."* With **Disallow AI
+Training**, *"Accountable mixed-use crawlers remain allowed for search"* while every other training
+crawler is blocked; it *"is only available as a setting for Training, not Search or Agent"*
+(verified 2026-10-24 —
+[Accountable mixed-use AI crawlers](https://blog.cloudflare.com/accountable-mixed-use-ai-crawlers/),
+2026-09-15). The docs agree: Training covers *"mixed-purpose crawlers that are used both for
+Training and for Search"*, and with Bot Preference Sync on, Training = Disallow enables edge
+blocking from which *"Mixed-use crawlers are excluded"* (verified 2026-10-24 — Block AI Bots page
+above; [robots.txt setting](https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/)).
+So the setting for "no training, still indexed" is **Disallow AI Training**, never Block. A zone
+whose Training policy is Block or Block on pages with ads is a cause to rule out first when Google
+stops crawling it — `14-diagnostic-checks.md` C11 reads it. ⚠️ The status code Googlebot then
+receives is not documented.
 
-Existing zones are touched on the same date through the legacy toggle. The page describes it as an
-option that "excludes mixed-purpose bots that are used both for Training and for Search", then says
-that from 2026-09-15 "Mixed-purpose crawlers that combine Search and Training will also be blocked by all
-configurations to block AI training, including the legacy 'Block AI bots' option" (verified
-2026-10-14 — same page; the
-[changelog of 2026-07-01](https://developers.cloudflare.com/changelog/post/2026-07-01-ai-traffic-options/)
-says the same crawlers "will be affected by the new defaults to block Training"). So a zone that
-switched on **Block AI bots** before the policies existed may now also block crawlers that feed an AI search
-product. ⚠️ Written ahead of the date and not confirmed as switched; on a zone with that toggle
-on, open **Configure AI bot policies** and check how Search and Training are actually set.
+**New domains** get one of two presets from 2026-09-15: everything Allow on a site without ads; on
+a site with ads, Training = Disallow AI Training and Agent = Block on pages with ads (verified
+2026-10-24 — same blog post). Read what a zone actually has rather than assuming.
+
+**Existing zones** were migrated from the legacy toggle: toggle off → all three Allow; toggle Block
+or Block on pages with ads → Search Allow, Training **Disallow AI Training**, Agent Block on pages
+with ads (verified 2026-10-24 — same post). Mixed-use crawlers stay allowed after that migration.
+⚠️ Read through the API on 2026-10-24, a zone with the legacy toggle on showed Training =
+`disallow` as described but Agent still Allow, and the legacy field kept its value next to the
+policies — what that leftover does is undocumented. The API exposes all of it on
+`GET /zones/{zone_id}/bot_management`: `ai_training` (`disabled` / `disallow` / `block` /
+`only_on_ad_pages`), `ai_search`, `ai_user` (Agent), and the legacy `ai_bots_protection`
+(verified 2026-10-24 — Cloudflare API schema; `disabled` reads as the dashboard's Allow, inferred
+from the enum rather than documented).
 
 The managed robots.txt is now driven by these policies through **Bot Preference Sync**
 (verified 2026-10-14 — [robots.txt setting](https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/), page last updated 2026-10-08):

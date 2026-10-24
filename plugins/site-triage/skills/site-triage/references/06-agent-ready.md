@@ -130,24 +130,15 @@ report `Syntax not understood` on these lines; Cloudflare says it has observed n
 impact (verified 2026-10-14 — [robots.txt setting](https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/),
 last updated 2026-10-08). Always diff live against repo — see `14-diagnostic-checks.md` C2.
 
-Cloudflare's page for the legacy *Block AI bots* toggle says that on **2026-09-15** it would be
-deprecated and new domains would get Training and Agent bots blocked on pages that display ads,
-Search allowed. That is per Cloudflare's page, written ahead of the date (last updated
-2026-07-01, still future tense on 2026-10-14); it is not confirmed as switched (verified
-2026-10-14 — [Block AI Bots](https://developers.cloudflare.com/bots/additional-configurations/block-ai-bots/)).
-For a domain added after that date, check the AI bot policies in the dashboard rather than
-assuming the old default.
-
-**Existing zones are affected too.** The same page says that from that date *"Mixed-purpose
-crawlers that combine Search and Training will also be blocked by all configurations to block AI
-training, including the legacy 'Block AI bots' option"* — so a zone that switched the old toggle on
-years ago may now block crawlers that also feed search, where before the toggle excluded them.
-Cloudflare's changelog says only that such crawlers *"will be affected by the new defaults to block
-Training"* and does not mention the legacy toggle. Same caveat: written ahead of the date, not
-confirmed as switched (verified 2026-10-14 — [Block AI Bots](https://developers.cloudflare.com/bots/additional-configurations/block-ai-bots/);
-[New options to manage AI traffic](https://developers.cloudflare.com/changelog/post/2026-07-01-ai-traffic-options/)).
-On a zone with the legacy toggle on, check which mixed-purpose crawlers it now blocks before
-diagnosing a missing AI-search presence anywhere else.
+The switch happened. Since 2026-09-15 a Training policy of **Block** or **Block on pages with ads**
+also blocks mixed-use crawlers — Googlebot, Bingbot and Applebot — *"so either setting impacts
+search as well as training"*; **Disallow AI Training** blocks training-only crawlers and leaves
+mixed-use crawlers allowed for search. Zones that had the legacy *Block AI bots* toggle on were
+migrated to Disallow AI Training, not to Block (verified 2026-10-24 —
+[Accountable mixed-use AI crawlers](https://blog.cloudflare.com/accountable-mixed-use-ai-crawlers/),
+2026-09-15). Presets, migration detail and the API fields are in `08-cloudflare-deploy.md`
+("AI crawlers"); `14-diagnostic-checks.md` C11 reads the policy of a zone. Rule it out before
+diagnosing a missing search or AI-search presence anywhere else.
 
 ```
 Content-Signal: search=yes, ai-train=yes, ai-input=yes

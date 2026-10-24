@@ -15,7 +15,7 @@ read as alternatives, and where they overlap, 14 wins.
 | | `09` (this file) | `14-diagnostic-checks.md` |
 |---|---|---|
 | Answers | *What order do I do things in, and how do I report it?* | *Is this specific behaviour actually true on the live site?* |
-| Shape | Six ordered steps, one gap report, one handoff | Ten independent checks (C1–C10), each printing `OK` or `FAIL` |
+| Shape | Six ordered steps, one gap report, one handoff | Eleven independent checks (C1–C11), each printing `OK` or `FAIL` |
 | Use when | Starting an audit | A probe here looks wrong and you need the cause |
 
 The probes in Step 1 and Step 1d below are **smoke tests** — deliberately shallow, fast enough to
@@ -33,6 +33,7 @@ comes back unexpected, stop and run the matching check from 14:
 | A thin `/index.html` shell served alongside `/` | **C7** |
 | `Link:` / HSTS header missing in Step 1b | **C8** — declared headers must actually be served |
 | `og:image` blank or SVG | **C9** |
+| Cloudflare zone with Google 403s or a crawl drop-off | **C11** — AI Training policy must not block Googlebot |
 
 Nothing in Step 1d duplicates C4 by accident: Step 1d greps **source** for slashless hrefs, C4
 measures **live** hop count and catches the meta-refresh hop `curl -L` does not count. Run both —
