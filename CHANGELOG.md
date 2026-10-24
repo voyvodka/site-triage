@@ -5,8 +5,19 @@ documented here. The format follows [Keep a Changelog](https://keepachangelog.co
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Content carries verification dates; a release that only re-verifies claims still gets an entry.
+Entries end with the pull request that made them. Those in 0.3.1 and earlier carry none: their
+releases each bundled several pull requests or direct commits, and no single number would be exact.
 
 ## [Unreleased]
+
+### Changed
+
+- The skill description no longer lists Turkish report labels; `16-search-console.md` gains a Turkish column for every Page indexing reason, sourced (#20).
+- C11 moved after C10, starts with a `cf-ray` check that the site is proxied by Cloudflare, and marks the `disabled` OK line as inferred (#20).
+
+### Fixed
+
+- `14`'s header names C11 among checks not fully observed live; C4's 10-hop limit, the AI-policy pitfall and the eval README now carry dates and sources (#20).
 
 ## [1.1.1] - 2026-10-24
 
@@ -24,7 +35,7 @@ Content carries verification dates; a release that only re-verifies claims still
 ### Fixed
 
 - Dependabot advice now covers npm 12 and pnpm 11–12, and warns that two-document pnpm 12 lockfiles get no security alerts (#13)
-- Corrected the CodeQL action pin, Socket's free-plan seats, Bing's submission-quota quote and the ChatGPT URL; removed an unsourced `rel="me"` claim (#13)
+- Corrected the CodeQL action pin, Socket's free-plan seats, Bing's submission-quota quote and the ChatGPT URL; narrowed the `rel="me"` claim to the fediverse profile link it verifies (#13)
 - Cloudflare AI bot advice now says Training = Block also blocks Googlebot and recommends Disallow AI Training instead (#14)
 
 ## [1.0.0] - 2026-10-14
@@ -33,7 +44,7 @@ Content carries verification dates; a release that only re-verifies claims still
 
 - **`web-launcher` is renamed to `site-triage`.** BREAKING: install with
   `/plugin install site-triage@voyvodka` and run `/site-triage`. Claude Code 2.1.193+ rewrites
-  `enabledPlugins` automatically; expect one `plugin-cache-miss` and a reinstall. No content changed.
+  `enabledPlugins` automatically; expect one `plugin-cache-miss` and a reinstall. No content changed (#11)
 
 ## [0.4.0] - 2026-10-14
 
@@ -41,134 +52,134 @@ Content carries verification dates; a release that only re-verifies claims still
 
 - **AI-search visibility reports.** Bing Webmaster Tools' AI Performance and Search Console's
   Generative AI performance report are covered, with a first check for zero AI impressions (`04`,
-  `15`, `16`).
+  `15`, `16`) (#10)
 - Release-age gates for npm, pnpm, Bun and Yarn, and npm 12's blocking of dependency install
-  scripts unless `allowScripts` allows them (`13`).
+  scripts unless `allowScripts` allows them (`13`) (#10)
 - Cloudflare's AI bot policies (Search, Agent, Training), Bot Preference Sync and the managed
-  robots.txt `use=reference` line (`06`, `08`, C2 in `14`).
+  robots.txt `use=reference` line (`06`, `08`, C2 in `14`) (#10)
 - User-triggered fetchers such as ChatGPT-User are no longer listed as robots.txt controls;
-  Meta-WebIndexer, Amzn-SearchBot and OAI-AdsBot are added (`03`, `15`).
+  Meta-WebIndexer, Amzn-SearchBot and OAI-AdsBot are added (`03`, `15`) (#10)
 - The live probes in `08`, `09` and `11` print a verdict for every check, including
-  `000`/`NO RESPONSE` and `MISSING:` lines.
+  `000`/`NO RESPONSE` and `MISSING:` lines (#10)
 - `08` covers Workers Builds, `wrangler-action` v4, Worker Previews, the `cf` CLI beta, cache
-  Invalidate, redirect status codes per mechanism, and an `http://` probe.
+  Invalidate, redirect status codes per mechanism, and an `http://` probe (#10)
 
 ### Changed
 
 - **Content re-verified on 2026-10-14; review due 2026-12-13.** Claims that could not be re-read
-  keep their older stamp or a ⚠️.
+  keep their older stamp or a ⚠️ (#10)
 - Search Console's reason table (`16`) uses Google's current labels and adds the missing reasons,
   including Redirect error, Server error (5xx), 401, 403, Duplicate without user-selected canonical,
   Discovered – currently not indexed, and the warnings "Indexed, though blocked by robots.txt" and
-  "Page indexed without content".
+  "Page indexed without content" (#10)
 - Google's published timings for crawling after a request and for duplicate clusters replace
-  "Google publishes no timing".
+  "Google publishes no timing" (#10)
 - `07` covers satori 0.56.1's breaking layout changes: `@vercel/og` 1.0.3 still runs satori
-  0.33.5, direct satori does not.
-- `06` covers isitagentready's 22 checks and API, and scopes the plugin to four of its signals.
+  0.33.5, direct satori does not (#10)
+- `06` covers isitagentready's 22 checks and API, and scopes the plugin to four of its signals (#10)
 - GitHub Actions guidance pins every action by SHA and covers the workflow lockfile; the `13`
-  §13.11 pin check reads more ref formats and ends in an OK/FAIL line.
+  §13.11 pin check reads more ref formats and ends in an OK/FAIL line (#10)
 - Dependabot's default 3-day cooldown and per-ecosystem limits are documented, and that pnpm 12 and
-  npm 12 fall outside its documented versions (`13`).
+  npm 12 fall outside its documented versions (`13`) (#10)
 - Versions re-resolved on 2026-10-14: wrangler `4.151.0`, satori `0.56.1`, svelte-sitemap
   `4.1.2`, `setup-node` v7.1.0, `codeql-action` v4.38.3, `pnpm/setup` v3.1.1, pnpm `12.11.2`,
-  TruffleHog `v3.99.2`, Syft `v1.54.1`.
+  TruffleHog `v3.99.2`, Syft `v1.54.1` (#10)
 - `08` and `13` match current vendor docs on Pages versus Workers, `--use-keyring`, Automatic
-  SSL/TLS, Secret Protection, Node 20 runners and npm trusted publishing.
+  SSL/TLS, Secret Protection, Node 20 runners and npm trusted publishing (#10)
 - README leads with the one-step install, `/plugin install web-launcher --marketplace
-  voyvodka/claude-plugins` (Claude Code 2.1.275 or later).
+  voyvodka/claude-plugins` (Claude Code 2.1.275 or later) (#10)
 
 ### Fixed
 
 - **SVG logos are allowed** for `Organization.logo`; Search favicons still need an ICO (`01`,
-  `03`, `10`).
+  `03`, `10`) (#10)
 - `12` and `16` list the Search Console API's other writes (`sitemaps.delete`, `sites.add`,
-  `sites.delete`), which the plugin never calls.
+  `sites.delete`), which the plugin never calls (#10)
 - Web Bot Auth uses the correct directory media type and a signed response; the advice to publish
-  an empty key set is withdrawn (`06`, `09`, `13`, `SKILL.md`).
-- The baseline `Permissions-Policy` no longer ships the deprecated `browsing-topics=()` (`08`).
+  an empty key set is withdrawn (`06`, `09`, `13`, `SKILL.md`) (#10)
+- The baseline `Permissions-Policy` no longer ships the deprecated `browsing-topics=()` (`08`) (#10)
 - The Markdown-for-Agents middleware no longer sets the dropped `X-Markdown-Tokens` header and adds
-  `Vary: Accept` (`06`).
-- `llms.txt` is linked with `rel="describedby"`, not `alternate` (`03`, `06`, `08`).
+  `Vary: Accept` (`06`) (#10)
+- `llms.txt` is linked with `rel="describedby"`, not `alternate` (`03`, `06`, `08`) (#10)
 - A single trailing-slash redirect reports as "Page with redirect", not "Redirect error", and
-  Googlebot follows up to ten hops (`09`, `14`, `SKILL.md`).
+  Googlebot follows up to ten hops (`09`, `14`, `SKILL.md`) (#10)
 - The SoftwareApplication template is marked ineligible for the rich result without
-  `aggregateRating` or `review`, which must never be invented (`03`, `09`).
+  `aggregateRating` or `review`, which must never be invented (`03`, `09`) (#10)
 - `security.txt` `Expires` is under a year, per RFC 9116, and the sitemap template drops
-  `<changefreq>` and `<priority>` (`03`).
+  `<changefreq>` and `<priority>` (`03`) (#10)
 - 302/307 are a weak canonical signal, not none (`14`); `sizes` on `<link rel=icon>` is optional
   (`01`); theme-color applies only to installed web apps in desktop Chrome and Safari 26 (`01`,
-  `02`, `03`).
+  `02`, `03`) (#10)
 
 ## [0.3.3] - 2026-09-25
 
 ### Added
 
 - README: what to do when GeoDaddy fails to connect, including `MCP_TIMEOUT` for the slow first
-  `npx` start and a failed analyzer download that breaks only `analyze_url`.
+  `npx` start and a failed analyzer download that breaks only `analyze_url` (#9)
 
 ### Changed
 
 - Versions re-resolved on 2026-09-25: satori `0.33.5`, `@vercel/og` `1.0.3`, `astro-og-canvas`
   `0.13.2`, `@astrojs/sitemap` `3.7.4`, wrangler `4.140.0`, Lighthouse `13.5.0`, `codeql-action`
-  `v4.38.2`, TruffleHog `v3.97.9`, Syft `v1.52.0`, CycloneDX spec `1.7.2`.
+  `v4.38.2`, TruffleHog `v3.97.9`, Syft `v1.52.0`, CycloneDX spec `1.7.2` (#9)
 - **pnpm 12 in `13-dependency-security.md`.** The example pins the `pnpm/action-setup` `v6.1.0`
   SHA with `version: 12`, and notes that `pnpm/setup` `v3` installs pnpm 11+ only and runs
-  `pnpm install` by default.
+  `pnpm install` by default (#9)
 - `11` lists all seven Lighthouse 13.5.0 Agentic Browsing audits, including the new `ard-schema`
-  (`ai-catalog.json`) audit.
+  (`ai-catalog.json`) audit (#9)
 - `06` names AIPREF's provisional `ai-use` category (`draft-ietf-aipref-vocab-08`) as the
-  counterpart to `Content-Signal`'s `ai-input`.
+  counterpart to `Content-Signal`'s `ai-input` (#9)
 
 ### Removed
 
 - Every unsourced indexing and logo timeline in `10` and `12`; they now say "days to weeks,
-  depending on crawl frequency" and point to Search Console.
+  depending on crawl frequency" and point to Search Console (#9)
 
 ### Fixed
 
 - **C1 passes a correct `404`.** A redirect ending anywhere but `200` fails, a `5xx` fails, and the
-  OK line counts how many probes redirected.
+  OK line counts how many probes redirected (#9)
 - **C3 requires consolidation:** exactly one variant may answer `200`; the others must 301/308 into
-  it.
-- `09`'s action-pin check now runs `13.11` check 4.
-- The baseline CSP no longer carries `script-src 'unsafe-inline'`.
+  it (#9)
+- `09`'s action-pin check now runs `13.11` check 4 (#9)
+- The baseline CSP no longer carries `script-src 'unsafe-inline'` (#9)
 - **`SKILL.md`'s always-loaded pitfalls match `08`**: no unconditional SPA fallback, no unsourced
-  field observations, and a zone rule instead of a Worker redirect.
+  field observations, and a zone rule instead of a Worker redirect (#9)
 - `08`'s Worker-redirect variant no longer hardcodes the SPA fallback or expects random paths to
-  answer `200`, and `11.1` no longer tests www→apex only on a random path.
-- `09` and `11` take the probe address from DNS instead of a hardcoded Cloudflare IP.
+  answer `200`, and `11.1` no longer tests www→apex only on a random path (#9)
+- `09` and `11` take the probe address from DNS instead of a hardcoded Cloudflare IP (#9)
 - **`15`'s citation check resolves each token to its governing robots.txt group** and now sees a
-  `Disallow` under `User-agent: *`; GeoDaddy's training-crawler count is corrected to five.
+  `Disallow` under `User-agent: *`; GeoDaddy's training-crawler count is corrected to five (#9)
 - `16` maps "Blocked by robots.txt" to `robotsTxtState` and `pageFetchState` instead of the
-  retired `indexingState: BLOCKED_BY_ROBOTS_TXT`.
+  retired `indexingState: BLOCKED_BY_ROBOTS_TXT` (#9)
 - `13.11` no longer runs `yarn outdated` on Yarn Berry, and the `13.3` workflow SHA-pins its
-  third-party actions.
+  third-party actions (#9)
 - `06` no longer calls `sitemap` and `security-txt` IANA-registered or recommends the empty JWKS
-  placeholder, and points to `14` C2 for the live-vs-repo diff.
+  placeholder, and points to `14` C2 for the live-vs-repo diff (#9)
 - `Content-Signal` and the empty JWKS placeholder are intent-only everywhere, no longer proposed
-  as fixes or rated 🟡 (`09`, `13.11`).
-- `mask-icon` is gone everywhere, and `02` and `03` include the `favicon.ico` that `01` requires.
-- `02` no longer states as verified two iOS claims that lack a primary source.
-- `05`'s orphan check no longer reports every page as an orphan.
+  as fixes or rated 🟡 (`09`, `13.11`) (#9)
+- `mask-icon` is gone everywhere, and `02` and `03` include the `favicon.ico` that `01` requires (#9)
+- `02` no longer states as verified two iOS claims that lack a primary source (#9)
+- `05`'s orphan check no longer reports every page as an orphan (#9)
 - `11` drops retired Lighthouse font-size and tap-target audits and counts the WebMCP audits
-  correctly.
+  correctly (#9)
 - `03`'s humans.txt template and `13`'s examples no longer carry a real project's stack or a real
-  timezone.
-- `01`'s emoji search no longer uses `grep -P`, so it works with macOS grep.
+  timezone (#9)
+- `01`'s emoji search no longer uses `grep -P`, so it works with macOS grep (#9)
 - `14`: C2 prints a result on success, C5 handles a sitemap index, and C6/C9 match tags whose
-  attributes come in either order.
+  attributes come in either order (#9)
 - `03`'s `llms.txt` claim cites Google's documentation update and marks the crawler-traffic claim
-  as secondary.
+  as secondary (#9)
 - `SKILL.md` no longer runs the Mode-B-only live probe in Mode A, counts 15 validators, and leads
-  its description with the trigger keywords.
+  its description with the trigger keywords (#9)
 
 ## [0.3.2] - 2026-09-08
 
 ### Fixed
 
 - The 0.3.0 and 0.3.1 entries in this changelog no longer list the same fixes twice under two
-  `### Fixed` headings.
+  `### Fixed` headings (#8)
 
 ## [0.3.1] - 2026-08-28
 

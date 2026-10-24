@@ -382,9 +382,9 @@ off for a static marketing site. AI-crawler policy is a separate feature, below.
 
 ### AI crawlers — AI bot policies, not "Block AI bots"
 
-The single **Block AI bots** toggle is headed "Deprecating on September 15, 2026". Its replacement
-is **Security Settings** > **Configure AI bot policies**: three policies — **Search** (indexing to
-answer later), **Agent** (real-time fetches on a person's behalf) and **Training** (including
+The single **Block AI bots** toggle was headed "Deprecating on September 15, 2026" and has since been
+replaced (the switch is described below). Its replacement is **Security Settings** > **Configure
+AI bot policies**: three policies — **Search** (indexing to answer later), **Agent** (real-time fetches on a person's behalf) and **Training** (including
 mixed-purpose Search+Training crawlers) — each set to Block on all pages, Block on pages with ads,
 or Allow (verified 2026-10-14 —
 [Block AI Bots](https://developers.cloudflare.com/bots/additional-configurations/block-ai-bots/), page last updated 2026-07-01).

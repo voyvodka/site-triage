@@ -1,7 +1,12 @@
 # Evals
 
-Behaviour tests for the `site-triage` skill, run with `claude plugin eval` (Claude Code 2.1.269 or later).
+Behaviour tests for the `site-triage` skill, run with `claude plugin eval` (Claude Code 2.1.269 or later — the release that added the command,
+per the [Claude Code changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md), read 2026-10-25).
 `claude plugin validate` checks the files; these check what the skill makes Claude do.
+
+The suite ships inside the plugin on purpose: `claude plugin eval` only reads an eval directory
+below the plugin (`--eval-dir` must be a relative path inside it — checked 2026-10-25 on 2.1.310),
+so an installed copy can run the same cases. Nothing in it loads during normal use.
 
 ```bash
 claude plugin eval plugins/site-triage --scaffold --no-publish --max-cost-usd 6
@@ -36,5 +41,10 @@ Turkish labels were then added to the description. The six trigger cases scored 
 before and after the change, and the negatives 6 of 6. At three runs per case the suite cannot
 tell the two descriptions apart.
 
-Each run costs money: about 0.05-0.30 USD per run with the default model, three runs per case.
+On 2026-10-25 the labels moved out of the description into a Turkish column in
+`16-search-console.md` (Claude Code 2.1.310, three runs per case): the four trigger cases scored 12 of
+12, the Turkish ones included, and the negatives 6 of 6.
+
+Each run costs money: the 2026-10-24 full run averaged about 0.17 USD per run (3.63 USD for 21
+runs) with the default model.
 Results land in `evals/results/`, which is gitignored.
