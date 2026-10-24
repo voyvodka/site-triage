@@ -183,7 +183,7 @@ fi
 ## C4 — No more than one hop, counting meta-refresh
 
 **Explains:** crawl budget waste and "Page with redirect" on URLs that do eventually resolve —
-and "Redirect error" when the chain grows too long or loops. Googlebot follows up to 10 hops; this
+and "Redirect error" when the chain grows too long or loops. Googlebot follows up to 10 hops (verified 2026-10-14 — source in `09-audit-workflow.md` Step 1d); this
 check fails at two because every hop past the first is waste, not because Google gives up.
 `curl -L` does **not** count meta-refresh, so an HTTP hop followed by a meta-refresh reads as one
 hop while actually being two. Framework-level `redirects` maps often emit exactly this shape.

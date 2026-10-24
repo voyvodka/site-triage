@@ -73,16 +73,15 @@ cited pages, and sampled grounding queries (verified 2026-10-14 —
 [Introducing AI Performance in Bing Webmaster Tools](https://blogs.bing.com/webmaster/February-2026/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview)).
 How to read it is in `15-geo-measurement.md`.
 
-**URL submission quota.** Bing's published ceiling is **10,000 URLs/day per site**, but it is
-adaptive, not an entitlement: *"The daily quota per site will be determined based on the site
-verified age in Bing Webmaster tool, site impressions and other signals"* (verified 2026-10-14 —
-[bingbot Series: submitting up to 10,000 URLs per day](https://blogs.bing.com/webmaster/january-2019/bingbot-Series-Get-your-content-indexed-fast-by-now-submitting-up-to-10,000-URLs-per-day-to-Bing)).
-A freshly verified domain gets a small fraction of that. The same post now opens with a note
-(updated November 2025): *"Microsoft now recommends using IndexNow as the primary method for
-real-time URL submission to Bing and participating search engines"* — so set up IndexNow before
-leaning on the Webmaster Tools submission quota. ⚠️ The 2019 figure remains the most specific
-published one; the current help pages were not re-checked for it, so treat it as a ceiling of
-unknown present accuracy rather than today's number.
+**URL submission quota.** The 2019 post that announced the Webmaster Tools ceiling now carries
+only a summary, *"submit up to 10,000 URLs per day, with no monthly quotas"*, and a note (updated
+November 2025): *"Microsoft now recommends using IndexNow as the primary method for real-time URL
+submission to Bing and participating search engines"* (verified 2026-10-24 —
+[bingbot Series: submitting up to 10,000 URLs per day](https://blogs.bing.com/webmaster/2019/1/bingbot-Series-Get-your-content-indexed-fast-by-now-submitting-up-to-10%2C000-URLs-per-day-to-Bing)).
+Set up IndexNow before leaning on the Webmaster Tools submission quota. ⚠️ The post's earlier
+sentence that the per-site quota depends on verified age and impressions is no longer on the page,
+and no current help page was found that restates it — treat 10,000/day as a ceiling of unknown
+present accuracy, and expect a freshly verified site to get less, unverified.
 
 ## IndexNow protocol (not Google)
 

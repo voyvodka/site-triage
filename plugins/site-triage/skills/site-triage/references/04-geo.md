@@ -109,7 +109,7 @@ Prevents LLMs confusing you with unrelated matches. Critical for generic names.
 ## Testing GEO coverage
 
 Quarterly, query each engine for brand + common intent:
-- **ChatGPT** (chat.openai.com with web search on) — "What is $BRAND?", "How do I install $BRAND?"
+- **ChatGPT** (chatgpt.com with web search on; `chat.openai.com` 308-redirects there, checked 2026-10-24) — "What is $BRAND?", "How do I install $BRAND?"
 - **Claude.ai** — same
 - **Perplexity** — same, check cited sources
 - **Google AI Overview** — search brand + common query on google.com
