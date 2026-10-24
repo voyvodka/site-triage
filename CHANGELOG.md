@@ -8,6 +8,8 @@ Content carries verification dates; a release that only re-verifies claims still
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-24
+
 ### Changed
 
 - The skill now also triggers on the Turkish Search Console labels, such as "Tarandı: Şu anda dizine eklenmiş değil" and "Yönlendirmeli sayfa" (#18)
@@ -242,7 +244,8 @@ Content carries verification dates; a release that only re-verifies claims still
   `-05` until 2027-02-20, `vocab` is at `-07`, and `Content-Usage` stays intent-only.
 - `$schema` added to `plugin.json`, pointing at the SchemaStore entry.
 
-[Unreleased]: https://github.com/voyvodka/site-triage/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/voyvodka/site-triage/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/voyvodka/site-triage/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/voyvodka/site-triage/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/voyvodka/site-triage/compare/v0.4.0...v1.0.0
 [0.4.0]: https://github.com/voyvodka/site-triage/compare/v0.3.3...v0.4.0
