@@ -6,7 +6,8 @@ needs to be traced to a cause. Read this before writing a gap report about a liv
 > **Verified 2026-10-14 · review by 2026-12-13.** Every check below was executed against two live
 > production sites on 2026-08-14 and each one either caught a real defect or cleared a suspected
 > one — except the C2 Content Signals Policy sub-check, added on 2026-10-14 from Cloudflare's
-> documentation and not yet run against a live site. They are measurements, not lint rules. The
+> documentation and not yet run against a live site, and C11, added on 2026-10-24 and run on one
+> live zone whose setting only exercised its OK and WARN lines (its FAIL line is unobserved). They are measurements, not lint rules. The
 > Search Console labels and vendor behaviour they cite were re-read on 2026-10-14.
 
 ## Why this file exists
@@ -43,7 +44,8 @@ BASE="https://example.com"
 
 Run them in the order below when diagnosing "why is this page not indexed": C1 and C7 explain most
 404 and redirect reasons, C3 and C4 explain most signal-consolidation problems. On a Cloudflare
-zone, run C11 when Google reports 403s or stops crawling.
+zone, run C11 when Google reports 403s or stops crawling — it is the last check because it is the
+only one that reads an account API instead of live HTTP.
 
 Every check prints `OK` or `FAIL` with the offending URL. Nothing prints on success except the
 `OK` line — silence means the check did not run.
@@ -184,7 +186,7 @@ fi
 ## C4 — No more than one hop, counting meta-refresh
 
 **Explains:** crawl budget waste and "Page with redirect" on URLs that do eventually resolve —
-and "Redirect error" when the chain grows too long or loops. Googlebot follows up to 10 hops (verified 2026-10-14 — source in `09-audit-workflow.md` Step 1d); this
+and "Redirect error" when the chain grows too long or loops. Google's crawlers follow up to 10 redirect hops by default (verified 2026-10-25 — [HTTP status codes and Google's crawlers](https://developers.google.com/crawling/docs/troubleshooting/http-status-codes), page last updated 2026-02-04); this
 check fails at two because every hop past the first is waste, not because Google gives up.
 `curl -L` does **not** count meta-refresh, so an HTTP hop followed by a meta-refresh reads as one
 hop while actually being two. Framework-level `redirects` maps often emit exactly this shape.
@@ -385,38 +387,6 @@ Every check in this file prints a line. A clean run that printed nothing would b
 indistinguishable from a check that never executed, which is the failure mode this file's
 own contract exists to prevent.
 
-## C11 — Cloudflare's AI Training policy must not block Googlebot
-
-**Explains:** a Cloudflare zone that Google stops crawling — "Blocked due to access forbidden
-(403)" or pages dropping out — with nothing wrong in the repository. Since 2026-09-15 a Training
-policy of Block or Block on pages with ads also blocks Googlebot, Bingbot and Applebot; **Disallow
-AI Training** does not (verified 2026-10-24 — sources in `08-cloudflare-deploy.md`, "AI crawlers").
-Cloudflare zones only; diagnosis elsewhere skips it.
-
-Needs a Cloudflare API token with **Bot Management Read** on the zone (the permission the endpoint
-lists in Cloudflare's API schema, read 2026-10-24); `wrangler login` does not carry it. Without a
-token, read **Security Settings** > **Configure AI bot policies** in the dashboard instead and apply
-the same verdict.
-
-```bash
-ZONE_ID="..."; CF_API_TOKEN="..."   # never paste the token into a file you commit
-cfg=$(curl -s --max-time 15 -H "Authorization: Bearer $CF_API_TOKEN" \
-  "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/bot_management")
-train=$(printf '%s' "$cfg" | grep -o '"ai_training": *"[a-z_]*"' | sed 's/.*"\([a-z_]*\)"$/\1/')
-legacy=$(printf '%s' "$cfg" | grep -o '"ai_bots_protection": *"[a-z_]*"' | sed 's/.*"\([a-z_]*\)"$/\1/')
-case "$train" in
-  block|only_on_ad_pages) echo "FAIL Training=$train also blocks mixed-use crawlers (Googlebot, Bingbot, Applebot)" ;;
-  disallow|disabled)      echo "OK   Training=$train: mixed-use crawlers are not blocked" ;;
-  *) echo "?    ai_training not readable (token scope or ZONE_ID): $(printf '%s' "$cfg" | head -c 200)" ;;
-esac
-case "$legacy" in ""|disabled) ;; *) echo "WARN legacy ai_bots_protection=$legacy is still set; its effect next to the policies is undocumented" ;; esac
-```
-
-⚠️ Added 2026-10-24. The endpoint was read on a real zone that day (it returned Training =
-`disallow` with the legacy field still `block`: the OK and WARN lines), and the parsing was run
-against that response shape and against an authentication error. The FAIL branch was not observed
-on a live zone: no setting was changed to provoke it.
-
 ## C10 — Find behavioural claims that nothing verifies (meta-check)
 
 The most generalizable check here. In the audit that produced this file, a config comment asserting
@@ -431,6 +401,49 @@ grep -rnE '(no|zero|avoids?|prevents?|without) .*(2-hop|double.hop|redirect chai
 Each hit is a claim about live behaviour. Either it has a check in this file, or write one, or
 delete the comment. An unverified claim in a config file is worse than no comment — it stops the
 next person from looking.
+
+## C11 — Cloudflare's AI Training policy must not block Googlebot
+
+**Explains:** a Cloudflare zone that Google stops crawling — "Blocked due to access forbidden
+(403)" or pages dropping out — with nothing wrong in the repository. Since 2026-09-15 a Training
+policy of Block or Block on pages with ads also blocks Googlebot, Bingbot and Applebot; **Disallow
+AI Training** does not (verified 2026-10-24 — sources in `08-cloudflare-deploy.md`, "AI crawlers").
+Cloudflare zones only; diagnosis elsewhere skips it. Tell from live HTTP first: a response
+proxied by Cloudflare carries a `cf-ray` header naming the data centre that handled it (verified
+2026-10-25 — [Cloudflare HTTP headers](https://developers.cloudflare.com/fundamentals/reference/http-headers/),
+page last updated 2026-10-09). No `cf-ray` means Cloudflare's proxy did not serve the response, so its bot policies are not in
+the path and C11 does not apply.
+
+```bash
+curl -sI --max-time 15 "$BASE/" | grep -i '^cf-ray:' >/dev/null \
+  && echo "OK   cf-ray present: Cloudflare proxies $BASE, run C11" \
+  || echo "SKIP no cf-ray: $BASE is not proxied by Cloudflare"
+```
+
+Needs a Cloudflare API token with **Bot Management Read** on the zone (the permission the endpoint
+lists in Cloudflare's API schema, read 2026-10-24); `wrangler login` does not carry it. Without a
+token, read **Security Settings** > **Configure AI bot policies** in the dashboard instead and apply
+the same verdict.
+
+```bash
+ZONE_ID="..."; CF_API_TOKEN="..."   # never paste the token into a file you commit
+cfg=$(curl -s --max-time 15 -H "Authorization: Bearer $CF_API_TOKEN" \
+  "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/bot_management")
+train=$(printf '%s' "$cfg" | grep -o '"ai_training": *"[a-z_]*"' | sed 's/.*"\([a-z_]*\)"$/\1/')
+legacy=$(printf '%s' "$cfg" | grep -o '"ai_bots_protection": *"[a-z_]*"' | sed 's/.*"\([a-z_]*\)"$/\1/')
+case "$train" in
+  block|only_on_ad_pages) echo "FAIL Training=$train also blocks mixed-use crawlers (Googlebot, Bingbot, Applebot)" ;;
+  disallow)               echo "OK   Training=$train: mixed-use crawlers are not blocked" ;;
+  disabled)               echo "OK   Training=$train (inferred: read as Allow, see 08): mixed-use crawlers are not blocked" ;;
+  *) echo "?    ai_training not readable (token scope or ZONE_ID): $(printf '%s' "$cfg" | head -c 200)" ;;
+esac
+case "$legacy" in ""|disabled) ;; *) echo "WARN legacy ai_bots_protection=$legacy is still set; its effect next to the policies is undocumented" ;; esac
+```
+
+⚠️ Added 2026-10-24. The endpoint was read on a real zone that day (it returned Training =
+`disallow` with the legacy field still `block`: the OK and WARN lines), and the parsing was run
+against that response shape and against an authentication error. The FAIL branch was not observed
+on a live zone: no setting was changed to provoke it.
 
 ---
 

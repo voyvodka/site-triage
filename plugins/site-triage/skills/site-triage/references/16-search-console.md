@@ -148,26 +148,29 @@ Labels are Google's current ones, in English — quote them that way and match t
 report against them loosely, since the interface is localized (verified 2026-10-14 —
 [Page indexing report](https://support.google.com/webmasters/answer/7440203),
 [UrlInspectionResult reference](https://developers.google.com/webmaster-tools/v1/urlInspection.index/UrlInspectionResult)).
+The Turkish column is the same report in Turkish, where the "Not indexed" group is headed
+*Dizine eklenmedi* — match a Turkish paste against it, still loosely (verified 2026-10-25 —
+[Sayfa dizine ekleme raporu](https://support.google.com/webmasters/answer/7440203?hl=tr)).
 
-| What Google reports | Read it as | Where the cause lives |
-|---|---|---|
-| Page with redirect | `verdict: NEUTRAL`, `googleCanonical != inspectionUrl`, fetch redirects | Usually **expected** — the redirecting twin of a canonical URL. A single valid `301`/`308` lands here, never under *Redirect error* — one redirect to a bad, empty or over-long URL is a *Redirect error*. A defect only when the target is not 200 (`14-diagnostic-checks.md` C1), the redirect is temporary (C3), or it takes more than one hop (C4) |
-| Redirect error | `pageFetchState: REDIRECT_ERROR` | Google lists four causes: a chain that was too long, a loop, a redirect URL that exceeded the maximum URL length, a bad or empty URL in the chain. Measure the chain with C4 and where it ends with C1 |
-| Not found (404) | `pageFetchState: NOT_FOUND` | A redirect issued before the target was resolved (C1), a sitemap listing dead URLs (C5), or an old external link. Trace it; do not delete the URL and call it fixed |
-| Soft 404 | `pageFetchState: SOFT_404` | A thin or empty page returning 200 (C7) |
-| Server error (5xx) | `pageFetchState: SERVER_ERROR` | The origin, or an edge rule in front of it, failing for Googlebot. C1 prints a 5xx on a probe path; then read server logs and any CDN/WAF rule |
-| Blocked due to unauthorized request (401) | `pageFetchState: ACCESS_DENIED` | An auth gate on a public URL — staging protection left on, usually |
-| Blocked due to access forbidden (403) | `pageFetchState: ACCESS_FORBIDDEN` | Googlebot never sends credentials, so Google calls a 403 to it an error on the server's side. Usually a bot-blocking rule at the CDN or WAF. On Cloudflare, first an AI bot policy with Training = Block or Block on pages with ads, which also blocks Googlebot since 2026-09-15 — `14` C11 (⚠️ the status code it returns is undocumented) |
-| URL blocked due to other 4xx issue | `pageFetchState: BLOCKED_4XX` | Any 4xx other than 401, 403, 404. Read the actual status with `curl -sI` and the URL Inspection tool |
-| URL blocked by robots.txt | `robotsTxtState: DISALLOWED` / `pageFetchState: BLOCKED_ROBOTS_TXT` | Check the **live** file, not the repository — a CDN may be injecting rules (C2) |
-| URL marked 'noindex' | `BLOCKED_BY_META_TAG` / `BLOCKED_BY_HTTP_HEADER` | Staging leftovers, or a shell served without the render path (C7) |
-| Alternate page with proper canonical tag | `googleCanonical` points elsewhere and you agree | Normal. Only a problem if you did *not* intend that canonical (C6) |
-| Duplicate without user-selected canonical | `googleCanonical` set, `userCanonical` absent | The page declares no canonical and Google picked one. Google calls this working as intended; declare a canonical only if its pick is wrong (C6) |
-| Duplicate, Google chose different canonical than user | `googleCanonical != userCanonical` | Real conflict — your declared canonical is being overruled. Check for duplicate content and mismatched signals (C6, C7). After a fix, Google may hold pages in the duplicate cluster for up to two weeks (verified 2026-10-14 — [Fix canonicalization issues](https://developers.google.com/search/docs/crawling-indexing/canonicalization-troubleshooting)) |
-| Crawled – currently not indexed | — | Not technical. Say so |
-| Discovered – currently not indexed | — | Google rescheduled the crawl because it expected to overload the site; not a technical defect in a file (`12-indexing.md`) |
-| Indexed, though blocked by robots.txt *(warning)* | `robotsTxtState: DISALLOWED` on an indexed URL | robots.txt blocks crawling, not indexing — Google indexed the URL from links pointing at it. To keep it out, allow crawling and serve `noindex` |
-| Page indexed without content *(warning)* | — | Google could not read the content: cloaking, or a format it cannot index. Not a robots.txt block. An empty shell (C7) is the first suspect |
+| What Google reports | Turkish label | Read it as | Where the cause lives |
+|---|---|---|---|
+| Page with redirect | Yönlendirmeli sayfa | `verdict: NEUTRAL`, `googleCanonical != inspectionUrl`, fetch redirects | Usually **expected** — the redirecting twin of a canonical URL. A single valid `301`/`308` lands here, never under *Redirect error* — one redirect to a bad, empty or over-long URL is a *Redirect error*. A defect only when the target is not 200 (`14-diagnostic-checks.md` C1), the redirect is temporary (C3), or it takes more than one hop (C4) |
+| Redirect error | Yönlendirme hatası | `pageFetchState: REDIRECT_ERROR` | Google lists four causes: a chain that was too long, a loop, a redirect URL that exceeded the maximum URL length, a bad or empty URL in the chain. Measure the chain with C4 and where it ends with C1 |
+| Not found (404) | Bulunamadı (404) | `pageFetchState: NOT_FOUND` | A redirect issued before the target was resolved (C1), a sitemap listing dead URLs (C5), or an old external link. Trace it; do not delete the URL and call it fixed |
+| Soft 404 | Soft 404 | `pageFetchState: SOFT_404` | A thin or empty page returning 200 (C7) |
+| Server error (5xx) | Sunucu hatası (5xx) | `pageFetchState: SERVER_ERROR` | The origin, or an edge rule in front of it, failing for Googlebot. C1 prints a 5xx on a probe path; then read server logs and any CDN/WAF rule |
+| Blocked due to unauthorized request (401) | Yetkisiz istek (401) nedeniyle engellendi | `pageFetchState: ACCESS_DENIED` | An auth gate on a public URL — staging protection left on, usually |
+| Blocked due to access forbidden (403) | Erişim izni verilmemesi (403) nedeniyle engellendi | `pageFetchState: ACCESS_FORBIDDEN` | Googlebot never sends credentials, so Google calls a 403 to it an error on the server's side. Usually a bot-blocking rule at the CDN or WAF. On Cloudflare, check first an AI bot policy with Training = Block or Block on pages with ads, which also blocks Googlebot since 2026-09-15 — `14` C11 (⚠️ the status code it returns is undocumented; putting it first generalises one zone observed on 2026-10-24, it is not a measured frequency) |
+| URL blocked due to other 4xx issue | URL başka bir 4xx sorunu nedeniyle engellendi | `pageFetchState: BLOCKED_4XX` | Any 4xx other than 401, 403, 404. Read the actual status with `curl -sI` and the URL Inspection tool |
+| URL blocked by robots.txt | URL, robots.txt tarafından engellendi | `robotsTxtState: DISALLOWED` / `pageFetchState: BLOCKED_ROBOTS_TXT` | Check the **live** file, not the repository — a CDN may be injecting rules (C2) |
+| URL marked 'noindex' | URL "noindex" olarak işaretlenmiş | `BLOCKED_BY_META_TAG` / `BLOCKED_BY_HTTP_HEADER` | Staging leftovers, or a shell served without the render path (C7) |
+| Alternate page with proper canonical tag | Doğru standart etikete sahip alternatif sayfa | `googleCanonical` points elsewhere and you agree | Normal. Only a problem if you did *not* intend that canonical (C6) |
+| Duplicate without user-selected canonical | Kullanıcı tarafından seçilen standart sayfa olmadan kopya | `googleCanonical` set, `userCanonical` absent | The page declares no canonical and Google picked one. Google calls this working as intended; declare a canonical only if its pick is wrong (C6) |
+| Duplicate, Google chose different canonical than user | Kopya, Google kullanıcıdan farklı bir standart sayfa seçti | `googleCanonical != userCanonical` | Real conflict — your declared canonical is being overruled. Check for duplicate content and mismatched signals (C6, C7). After a fix, Google may hold pages in the duplicate cluster for up to two weeks (verified 2026-10-14 — [Fix canonicalization issues](https://developers.google.com/search/docs/crawling-indexing/canonicalization-troubleshooting)) |
+| Crawled – currently not indexed | Tarandı: Şu anda dizine eklenmiş değil | — | Not technical. Say so |
+| Discovered – currently not indexed | Bulundu: Şu anda dizine eklenmiş değil | — | Google rescheduled the crawl because it expected to overload the site; not a technical defect in a file (`12-indexing.md`) |
+| Indexed, though blocked by robots.txt *(warning)* | robots.txt tarafından engelleniyor olsa da dizine eklendi | `robotsTxtState: DISALLOWED` on an indexed URL | robots.txt blocks crawling, not indexing — Google indexed the URL from links pointing at it. To keep it out, allow crawling and serve `noindex` |
+| Page indexed without content *(warning)* | Sayfa içerik olmadan dizine eklendi | — | Google could not read the content: cloaking, or a format it cannot index. Not a robots.txt block. An empty shell (C7) is the first suspect |
 
 ## Deciding "expected" from enums — measured, not inferred
 
