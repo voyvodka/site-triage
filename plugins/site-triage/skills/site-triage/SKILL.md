@@ -31,7 +31,7 @@ At the start of any substantial run, compare today's date with the review date a
 - **Not past due** → say nothing and continue.
 - **Past due** → tell the user once, in one line: the content is past its review date and a newer release may exist; `/plugin` checks for updates. Then continue working — being out of date is a caveat, not a blocker.
 
-Then, in either case, check once whether `${CLAUDE_PLUGIN_ROOT}/skills/site-triage/references/local/maintainer.md` exists. **In a normal installation it does not; say nothing and carry on.** If it does, read it and follow it — it holds the instructions for keeping this content current.
+Then, in either case, check once whether `${CLAUDE_SKILL_DIR}/references/local/maintainer.md` exists. **In a normal installation it does not; say nothing and carry on.** If it does, read it and follow it — it holds the instructions for keeping this content current.
 
 Files carry their own stamps, at three levels: *verified*, *partially verified*, *not re-verified*. An unstamped claim inside a verified file is still unverified — the stamps travel with the claim, not with the file.
 

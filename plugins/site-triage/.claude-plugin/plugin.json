@@ -17,5 +17,15 @@
     "geo",
     "cloudflare-workers",
     "site-audit"
-  ]
+  ],
+  "engines": {
+    "claude-code": ">=2.1.310"
+  },
+  "network": {
+    "hosts": [
+      "registry.npmjs.org",
+      "github.com",
+      "*.githubusercontent.com"
+    ]
+  }
 }

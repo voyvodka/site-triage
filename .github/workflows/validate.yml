@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The validate step runs the current CLI, and the CLI changes weekly while this repository
+  # can sit for a month. Without a schedule a new CLI that stops loading the plugin goes
+  # unnoticed until the next push.
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: read

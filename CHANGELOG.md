@@ -10,6 +10,18 @@ releases each bundled several pull requests or direct commits, and no single num
 
 ## [Unreleased]
 
+### Added
+
+- `plugin.json` declares `engines` (`claude-code >=2.1.310`) and `network.hosts` for the hosts the GeoDaddy server is fetched from. Claude Code 2.0.15 through 2.1.75 reject a manifest with `engines`; the README says so.
+- The plugin folder has its own README, so an installed copy carries one.
+- `evals/mocks/geodaddy/_tools.json`: the mocked `analyze_url` shows its real description and input schema.
+- CI runs weekly as well as on push, so a new Claude Code release that stops loading the plugin is noticed.
+
+### Changed
+
+- The maintainer-file check in `SKILL.md` uses `${CLAUDE_SKILL_DIR}`.
+- The README states how long a failed GeoDaddy connection is skipped (15 minutes), with its source.
+
 ## [1.1.2] - 2026-10-25
 
 ### Changed

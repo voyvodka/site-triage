@@ -46,15 +46,20 @@ On an older version, register the catalog first:
 /plugin install site-triage@voyvodka
 ```
 
-Requires Claude Code. The diagnostic checks need `curl`, `grep` and a POSIX shell — present on
+Requires Claude Code. The manifest declares `engines`: `claude-code >=2.1.310`, the oldest
+version the plugin was run on. Claude Code reads that field from 2.1.323; versions 2.0.15 through
+2.1.75 reject a manifest that carries it with an `Unrecognized key` error, so the plugin does not
+load there ([plugins reference](https://code.claude.com/docs/en/plugins-reference), read
+2026-11-21). The diagnostic checks need `curl`, `grep` and a POSIX shell — present on
 macOS and Linux by default. GEO scoring uses the [GeoDaddy](https://geodaddy.dev/) MCP server,
 declared by the plugin and fetched via `npx` on first use; Search Console access needs a one-time
 Google OAuth setup, and both are optional.
 
 **If GeoDaddy fails to connect.** Claude Code gives an MCP server 30 seconds to start. The first
 `npx` run of `geodaddy-mcp` downloads the package and, in its postinstall step, the analyzer binary
-from GitHub releases — on a slow network that can run past 30 seconds, and the failure is then
-cached for a while. Start Claude Code once with a longer limit, e.g. `MCP_TIMEOUT=90000 claude`,
+from GitHub releases — on a slow network that can run past 30 seconds, and Claude Code then skips a
+plugin's server for 15 minutes after the failure ([MCP documentation](https://code.claude.com/docs/en/mcp),
+read 2026-11-21). Start Claude Code once with a longer limit, e.g. `MCP_TIMEOUT=90000 claude`,
 so the cache fills; later starts take about a second. The postinstall step ignores its own
 failure (`|| true`): if the binary download fails, the server still starts and only `analyze_url`
 fails, with "geodaddy binary not found". Clearing the `npx` cache entry for `geodaddy-mcp` and
