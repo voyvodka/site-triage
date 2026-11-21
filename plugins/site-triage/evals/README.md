@@ -27,7 +27,10 @@ claude plugin eval plugins/site-triage --scaffold --no-publish --max-cost-usd 6
 
 GeoDaddy is mocked in `mocks/geodaddy/`; the real server never starts unless `--mocks off` or
 `--allow-real-servers` is passed. The mock body is a hand-written fixture in the shape the tool
-describes (score, categories, findings), not a recorded response.
+describes (score, categories, findings), not a recorded response. `mocks/geodaddy/_tools.json`
+gives the mocked tool its real description and input schema; it is transcribed from the
+`registerTool` call in `geodaddy-mcp@0.2.2` (read 2026-11-21), not saved from a running server, so
+re-transcribe it when the pinned version in `.mcp.json` changes.
 
 On a machine where the skill is also installed in a skills directory, the no-plugin baseline arm
 still sees it, so read the with-plugin scores and ignore the delta there.

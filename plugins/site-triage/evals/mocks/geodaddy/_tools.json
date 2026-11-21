@@ -1,0 +1,45 @@
+{
+  "tools": [
+    {
+      "name": "analyze_url",
+      "title": "Analyze URL for GEO/SEO",
+      "description": "Run geodaddy GEO/SEO analysis on a URL. Returns a JSON report with overall score (0-100), per-category scores (Technical, Content, GEO, Performance), per-page analysis results, and actionable fix recommendations for AI search engine optimization.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL to analyze (supports http://localhost)"
+          },
+          "max_pages": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Enable site crawling, stop after N pages"
+          },
+          "enable_js": {
+            "type": "boolean",
+            "description": "Enable JavaScript rendering (downloads Chromium on first use)"
+          },
+          "vitals": {
+            "type": "boolean",
+            "description": "Measure Core Web Vitals (LCP, FCP, CLS, TTFB, TBT) via headless browser"
+          },
+          "fail_under": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Return error if overall score is below this threshold (0-100)"
+          },
+          "beauty": {
+            "type": "boolean",
+            "description": "Return colored human-readable output instead of JSON (note: disables JSON output)"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
