@@ -18,13 +18,13 @@ for p in / /favicon.svg /robots.txt /sitemap.xml /llms.txt /humans.txt /og-cover
 done
 
 # www → apex redirect (must be 301) — on a real page AND a random path. A random path alone
-# passes even when a Worker redirect runs behind asset serving and never sees real pages
-# (08-cloudflare-deploy.md, routing order).
+# passes on Cloudflare even when a Worker redirect runs behind asset serving and never sees real
+# pages (08-cloudflare-deploy.md, routing order).
 # Status and location on one line; `head -3` cut off `location`, which sits further down.
 curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/" | grep -iE '^(HTTP|location)' | tr -d '\r' | paste -sd' ' -
 curl -sI --resolve www.DOMAIN:443:$IP "https://www.DOMAIN/test-$(date +%s)" | grep -iE '^(HTTP|location)' | tr -d '\r' | paste -sd' ' -
-# …and the http:// legs, which a rule matching only https://www.* leaves at two hops
-# (08-cloudflare-deploy.md, www → apex). %{http_code} tells an unreachable host (000) from a
+# …and the http:// legs, which a redirect rule matching only https://www.* leaves at two hops
+# (on Cloudflare: 08-cloudflare-deploy.md, www → apex). %{http_code} tells an unreachable host (000) from a
 # clean 0-hop answer — both print "0 hops -> http://…" otherwise.
 curl -sIL --max-time 10 -o /dev/null -w '%{num_redirects} hops -> %{url_effective} %{http_code}\n' "http://www.DOMAIN/"
 curl -sIL --max-time 10 -o /dev/null -w '%{num_redirects} hops -> %{url_effective} %{http_code}\n' "http://DOMAIN/"
@@ -49,7 +49,7 @@ Expected:
   and the random path
 - `http://DOMAIN/` → `1 hops -> https://DOMAIN/ 200`. `http://www.DOMAIN/` → the same in 1 hop
   when the www rule matches both schemes, or `2 hops -> https://DOMAIN/ 200` with the HTTPS-only
-  rule — both acceptable (`08-cloudflare-deploy.md`, www → apex). A trailing `000` means the host
+  rule — both acceptable (on Cloudflare: `08-cloudflare-deploy.md`, www → apex). A trailing `000` means the host
   did not answer: not checked, not a pass
 - `/random-unknown-path` — **200** on an SPA (index fallback), **404** on a static or SSR site. Decide
   which shape the site is *before* reading this line, otherwise it proves nothing either way.
@@ -186,9 +186,9 @@ Common failures and fixes per category:
 
 | Category | Target | Common fail → fix |
 |---|---|---|
-| **Performance** | ≥95 | Render-blocking CSS → inline critical, defer rest / Large LCP image → preload + `fetchpriority="high"` + AVIF or WebP / Long main thread → remove unused JS, code-split / Slow TTFB → CF edge cache, HTTP/3 / Unused CSS → purge (tailwind), tree-shake / Font swap flash → preload + `font-display: swap` |
+| **Performance** | ≥95 | Render-blocking CSS → inline critical, defer rest / Large LCP image → preload + `fetchpriority="high"` + AVIF or WebP / Long main thread → remove unused JS, code-split / Slow TTFB → the host's edge cache, HTTP/3 / Unused CSS → purge (tailwind), tree-shake / Font swap flash → preload + `font-display: swap` |
 | **Accessibility** | 100 | Missing `<html lang>` → add `<html lang="en">` / Low contrast → bump token colors / Missing alt → `alt=""` decorative, descriptive otherwise / Buttons lack name → aria-label / No skip link → `<a class="skip-link" href="#main">` / Headings skip levels → fix h1→h2→h3 order |
-| **Best Practices** | ≥95 | Mixed content HTTP → HTTPS rewrites / Console errors → fix / Deprecated APIs → migrate / No CSP → add (we ship one in `08-cloudflare-deploy.md`) / Missing HSTS → we ship one / Images wrong aspect ratio → set width/height attributes |
+| **Best Practices** | ≥95 | Mixed content HTTP → HTTPS rewrites / Console errors → fix / Deprecated APIs → migrate / No CSP → add in the host's header config (C8 lists where; `08-cloudflare-deploy.md` has one for Cloudflare) / Missing HSTS → add the same way, where the host allows headers / Images wrong aspect ratio → set width/height attributes |
 | **SEO** | 100 | Missing meta description → add per page / No canonical → add / robots.txt blocks → fix / Link lacks discernible name → aria-label / Non-descriptive link text "click here" → rewrite / Invalid `hreflang` → fix or remove |
 
 ## 11.4 Core Web Vitals (Google ranks on these)
@@ -278,5 +278,5 @@ After every deploy, run in this order:
    content change.
 6. **(If redirects changed)** Re-test with a cache-busting query string rather than purging.
    Static assets revalidate by default, so a purge only matters for paths where the site set a
-   long `max-age` itself, and it is a separately approved operation (`08-cloudflare-deploy.md`
-   gotchas, `09-audit-workflow.md` Step 4).
+   long `max-age` itself, and it is a separately approved operation (`09-audit-workflow.md` Step 4;
+   on Cloudflare, `08-cloudflare-deploy.md` gotchas).

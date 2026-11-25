@@ -81,7 +81,7 @@ Rule these out BEFORE blaming "time":
   curl -s https://DOMAIN/ | grep -E 'meta.*robots.*noindex'
   ```
 - **`robots.txt` blocks Googlebot specifically** — check for `User-agent: Googlebot\nDisallow: /` leftover from staging config
-- **No HTTPS redirect** — http:// and https:// indexed as duplicates, authority split. Fix via CF "Always Use HTTPS" = On.
+- **No HTTPS redirect** — http:// and https:// indexed as duplicates, authority split. Fix with the host's HTTPS redirect setting (on Cloudflare, "Always Use HTTPS" = On).
 - **Brand name collides with common word** — entity disambiguation (see `04-geo.md`)
 - **Hreflang conflict** (multi-region sites) — wrong hreflang tags confuse Google's region targeting
 

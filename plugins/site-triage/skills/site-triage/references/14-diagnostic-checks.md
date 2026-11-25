@@ -333,10 +333,10 @@ Disabling directory-index resolution does not stop a direct request for the file
 **Explains:** security and caching headers that the site's config declares but never reach a
 client — usually because the file is in the wrong directory, or a rule earlier in the chain wins.
 Where the declarations live depends on the host (`SKILL.md`, Hosts): `_headers` on Cloudflare or
-Netlify, `[[headers]]` in `netlify.toml`, `headers` in `vercel.json` / `vercel.ts`, middleware or
+Netlify, `[[headers]]` in `netlify.toml`, `headers` in `vercel.json`, `vercel.toml` or `vercel.ts`, middleware or
 the framework config elsewhere. GitHub Pages documents no way to set response headers, so report
 headers there as not configurable rather than missing (verified 2026-11-25 —
-[Vercel project configuration](https://vercel.com/docs/project-configuration/vercel-json),
+[Vercel project configuration](https://vercel.com/docs/project-configuration), whose static formats share the same properties,
 [Netlify custom headers](https://docs.netlify.com/manage/routing/headers/), and the
 [GitHub Pages docs](https://docs.github.com/en/pages), which have no headers article).
 
