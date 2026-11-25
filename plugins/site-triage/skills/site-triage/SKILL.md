@@ -67,7 +67,7 @@ runs all eight, because step 8 probes a live site.
 
 **The site keeps the host it already has.** This skill's deploy guidance (`08-cloudflare-deploy.md`) covers Cloudflare Workers only. On Vercel, Netlify, GitHub Pages or any other host, header, redirect and domain fixes go into that host's own config, checked against its current docs, and the deploy pipeline stays as it is — a missing `wrangler` file is not a gap there. Propose moving a site to Cloudflare only when the user asks for it.
 
-**With no host yet** (Mode A), ask where the site will be hosted before planning deployment, and name Cloudflare Workers as one option among others. The deploy phase loads `08-cloudflare-deploy.md` only when the user picks Cloudflare.
+**With no host yet** (Mode A), ask where the site will be hosted before planning deployment, and name Cloudflare Workers as one option among others. Until the user picks, keep the deploy phase host-neutral — custom domain, HTTPS, one canonical host, headers, a real 404 — and leave any host's own steps (its CLI, config files, dashboard rules) out of the plan, Cloudflare's included. The deploy phase loads `08-cloudflare-deploy.md` only when the user picks Cloudflare.
 
 Then write a **severity-ranked gap report**:
 
