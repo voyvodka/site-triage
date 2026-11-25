@@ -10,7 +10,7 @@ releases each bundled several pull requests or direct commits, and no single num
 
 ## [Unreleased]
 
-## [1.3.0] - 2026-11-25
+## [1.3.0] - 2026-11-26
 
 ### Added
 
