@@ -222,8 +222,9 @@ hop_count "$BASE/old-path"
 
 **Not for the host/scheme variants.** C4 is for content aliases and redirect-map entries. The four
 `http(s)://(www.)DOMAIN/` variants belong to C3, which checks where the chain ends, not its length:
-`http://www.DOMAIN/` taking two hops (Always Use HTTPS, then the www rule) is accepted in
-`08-cloudflare-deploy.md` (www → apex), or collapsed to one by widening the rule there. Do not feed
+`http://www.DOMAIN/` taking two hops (the HTTP → HTTPS redirect, then the www rule) is accepted on
+any host, or collapsed to one by a www rule that matches both schemes (on Cloudflare:
+`08-cloudflare-deploy.md`, www → apex). Do not feed
 those URLs to `hop_count` and report a second verdict on them.
 
 ## C5 — Every sitemap URL must return 200

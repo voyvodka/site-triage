@@ -139,7 +139,7 @@ grep -rnE 'href="/[^"#]*[^/"]"' src/ public/ \
 
 # 3. Same for committed redirect target lists
 grep -nE "'/[^']*[^/']'" astro.config.* next.config.* 2>/dev/null  # framework redirects map
-cat public/_redirects 2>/dev/null                                   # CF Pages style
+cat public/_redirects 2>/dev/null                                   # Cloudflare or Netlify
 cat public/llms.txt | grep -oE 'https?://[^ )"]*'                   # llms.txt entries (reach Google as referral)
 
 # 4. Live redirect-chain probe — every internal href should be 0-hop
