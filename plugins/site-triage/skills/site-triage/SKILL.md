@@ -119,18 +119,22 @@ After each phase, report back in the Output convention shape (below) before movi
 
 These tripped past launches. Apply defensively without needing to open a reference file:
 
-- **`_redirects /*  /  302` on root** matches `/` too and loops. Use specific path patterns. For a client-routed SPA, `not_found_handling: "single-page-application"` is the fallback; on a multi-page site use `"404-page"` — the SPA value turns every unknown route into a 200 soft 404 (`08-cloudflare-deploy.md`).
-- **Finder drag-upload hides dotfiles** (`.well-known/` gets silently dropped). Always use `wrangler deploy` CLI, never browser upload for sites with hidden folders.
-- **A Worker script does not run for requests that match a static asset.** Host redirects and header logic look fine on random paths while every real page bypasses them. Set `run_worker_first` or move the logic to a zone rule, and test on a real page (`08-cloudflare-deploy.md`, routing order).
 - **Long `max-age` / `immutable` paths outlive a redeploy** in browsers, and no purge reaches a browser cache. Everything else revalidates by default — test with a cache-busting query string rather than asking for a purge.
-- **`wrangler login`'s OAuth token carries `zone:read` only** — it cannot create Redirect Rules, change SSL mode or purge cache. The www→apex redirect is a zone Redirect Rule the user adds in the dashboard; a Worker redirect is the fallback and needs `run_worker_first` (`08-cloudflare-deploy.md`).
-- **Cloudflare AI bot policy Training = Block blocks Googlebot too** (since 2026-09-15, with Bingbot and Applebot). "No training, still indexed" is **Disallow AI Training**. Check it with `14-diagnostic-checks.md` C11 before diagnosing a Cloudflare site's crawl drop anywhere else (verified 2026-10-24 — Cloudflare's announcement and docs, cited in `08-cloudflare-deploy.md`, "AI crawlers").
 - **`og:image` as SVG** — no social platform documents SVG support for cards (unverified either way — `14-diagnostic-checks.md` C9). Always PNG.
 - **Fonts in SVG logotypes** — `<text font-family="...">` depends on system font; outline to paths for distribution.
 - **Email in security.txt** — verify address actually exists before publishing (no MX on new domains = bounces).
 - **Committed secrets** — rotating the credential comes first, BEFORE rewriting git history. Then `git filter-repo --path <file> --invert-paths` + force-push. Never just `git rm` — old commits retain it.
 - **Running both Dependabot AND Renovate** on the same repo — pick one; otherwise duplicate PR flood.
 - **Trailing-slash drift** — when framework config sets `trailingSlash: 'always'` (Astro) or equivalent (Next.js `trailingSlash: true`, Hugo `uglyURLs=false`), *every* internal link must include the slash. Header nav, footer, body content, framework `redirects` map targets, and `public/llms.txt` are the common offenders. Each slashless internal link triggers a 308 (or meta-refresh + 308 = 2-hop) redirect — wasting crawl budget and surfacing in GSC as "Page with redirect" (a chain that loops or runs too long becomes "Redirect error"). Audit with `grep -rE 'href="/[^"#]*[^/"]"' src/` plus the redirect-chain probe in `11-validation-toolkit.md` §11.1. Reverse drift (`trailingSlash: 'never'` + trailing-slash internal links) is equally bad — match the framework setting either way.
+
+**On Cloudflare only** — the site is on Cloudflare Workers, or the user chose it (Hosts above). On any other host these do not apply; that host's own config and docs do:
+
+- **`_redirects /*  /  302` on root** matches `/` too and loops. Use specific path patterns.
+- **Unknown routes:** for a client-routed SPA, `not_found_handling: "single-page-application"` is the fallback; on a multi-page site use `"404-page"` — the SPA value turns every unknown route into a 200 soft 404 (`08-cloudflare-deploy.md`).
+- **Finder drag-upload hides dotfiles** (`.well-known/` gets silently dropped). Always use `wrangler deploy` CLI, never browser upload for sites with hidden folders.
+- **A Worker script does not run for requests that match a static asset.** Host redirects and header logic look fine on random paths while every real page bypasses them. Set `run_worker_first` or move the logic to a zone rule, and test on a real page (`08-cloudflare-deploy.md`, routing order).
+- **`wrangler login`'s OAuth token carries `zone:read` only** — it cannot create Redirect Rules, change SSL mode or purge cache. The www→apex redirect is a zone Redirect Rule the user adds in the dashboard; a Worker redirect is the fallback and needs `run_worker_first` (`08-cloudflare-deploy.md`).
+- **Cloudflare AI bot policy Training = Block blocks Googlebot too** (since 2026-09-15, with Bingbot and Applebot). "No training, still indexed" is **Disallow AI Training**. Check it with `14-diagnostic-checks.md` C11 before diagnosing a Cloudflare site's crawl drop anywhere else (verified 2026-10-24 — Cloudflare's announcement and docs, cited in `08-cloudflare-deploy.md`, "AI crawlers").
 
 ## Output conventions
 

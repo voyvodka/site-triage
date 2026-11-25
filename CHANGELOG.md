@@ -12,16 +12,19 @@ releases each bundled several pull requests or direct commits, and no single num
 
 ### Added
 
-- Evals `vercel-host-kept` and `no-host-asks`: a Vercel site keeps its host, and a site with no host is asked where it will be hosted
+- Evals `vercel-host-kept` and `no-host-asks`: a Vercel site keeps its host, and a site with no host is asked where it will be hosted (#26)
+- Eval `pages-host-launch`: a single-page site that deploys through a GitHub Pages workflow is launched there, with no Cloudflare steps (#28)
 
 ### Changed
 
-- The scan names the host — Cloudflare, Vercel, Netlify or GitHub Pages — from its config, or in Mode B from the live response headers. A site keeps the host it has, with fixes in that host's own config; a site with no host is asked where it will be hosted, and Cloudflare deployment is planned only when the user picks it
+- The scan names the host — Cloudflare, Vercel, Netlify or GitHub Pages — from its config, or in Mode B from the live response headers. A site keeps the host it has, with fixes in that host's own config; a site with no host is asked where it will be hosted, and Cloudflare deployment is planned only when the user picks it (#26)
+- The Cloudflare pitfalls in `SKILL.md` (`_redirects` loop, `not_found_handling`, dashboard upload, `run_worker_first`, `wrangler login` scope, AI bot policy) apply only to a site on Cloudflare; the Mode A scaffold's file tree and deploy checklist no longer assume Cloudflare (#28)
+- `brand-only` eval: the judge separates a short note on what was left out from non-brand work proposed for this pass; three judges had split on the same compliant replies (#28)
 
 ### Fixed
 
-- When a check cannot run (no network, no URL), the answer says so and gives the check's command from `14-diagnostic-checks.md`; the skill had not said what to do then, and some replies gave neither verdict nor command
-- `11-validation-toolkit.md`: the DNS cache flush before the browser check gives the Linux and Windows commands beside the macOS one
+- When a check cannot run (no network, no URL), the answer says so and gives the check's command from `14-diagnostic-checks.md`; the skill had not said what to do then, and some replies gave neither verdict nor command (#27)
+- `11-validation-toolkit.md`: the DNS cache flush before the browser check gives the Linux and Windows commands beside the macOS one (#25)
 
 ## [1.2.0] - 2026-11-21
 

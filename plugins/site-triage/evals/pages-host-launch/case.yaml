@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: pages-host-launch
+tags: [hosts]
+context:
+  scaffold_script: fixture.sh
