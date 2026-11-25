@@ -330,8 +330,15 @@ Disabling directory-index resolution does not stop a direct request for the file
 
 ## C8 — Declared headers must actually be served
 
-**Explains:** security and caching headers that exist in `_headers` but never reach a client —
-usually because the file is in the wrong directory, or a rule earlier in the chain wins.
+**Explains:** security and caching headers that the site's config declares but never reach a
+client — usually because the file is in the wrong directory, or a rule earlier in the chain wins.
+Where the declarations live depends on the host (`SKILL.md`, Hosts): `_headers` on Cloudflare or
+Netlify, `[[headers]]` in `netlify.toml`, `headers` in `vercel.json` / `vercel.ts`, middleware or
+the framework config elsewhere. GitHub Pages documents no way to set response headers, so report
+headers there as not configurable rather than missing (verified 2026-11-25 —
+[Vercel project configuration](https://vercel.com/docs/project-configuration/vercel-json),
+[Netlify custom headers](https://docs.netlify.com/manage/routing/headers/), and the
+[GitHub Pages docs](https://docs.github.com/en/pages), which have no headers article).
 
 ```bash
 assert_header() {
@@ -347,7 +354,7 @@ assert_header "$BASE/" "strict-transport-security" "max-age="
 assert_header "$BASE/" "link" 'rel="sitemap"'
 ```
 
-Assert one line per declaration in `_headers`. A declaration nobody checks is a comment.
+Assert one line per header the site's config declares. A declaration nobody checks is a comment.
 
 ## C9 — `og:image` must exist and resolve
 

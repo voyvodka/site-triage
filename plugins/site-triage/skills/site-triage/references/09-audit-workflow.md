@@ -277,7 +277,7 @@ frequency table — no measurement backs an ordering, so do not present it to a 
   on it (Cloudflare's `/crawl` is the exception, `03-discoverability-classic.md`) and it is not a
   GEO factor (`06-agent-ready.md` §2). Mention it as intent-only, never as a defect
 - ❌ `Link:` headers missing → agentic-web probe fails. Confirm with **C8**, which distinguishes
-  "never declared" from "declared in `_headers` but not served"
+  "never declared" from "declared in the host's header config but not served"
 - ⚪ Web Bot Auth directory missing → the scanner reports it as `neutral`, *"Web Bot Auth directory
   not found (informational only)"* (verified 2026-10-14 — `POST https://isitagentready.com/api/scan`
   against a site without one). It only matters for a site that operates a signing bot. Not a

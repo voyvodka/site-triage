@@ -23,7 +23,7 @@ claude plugin eval plugins/site-triage --scaffold --no-publish --max-cost-usd 6
 | `no-fabricated-verdicts` | With no network, no check is reported as passed or failed (rule 2) |
 | `healthy-redirects` | Slashless twins that 308 once are read as expected, not as defects (rule 1) |
 | `brand-only` | Mode C reports brand findings only (scan steps 1-3) |
-| `pages-host-launch` | A single-page site on GitHub Pages is launched through its own workflow, with no Cloudflare steps |
+| `pages-host-launch` | A single-page site on GitHub Pages is launched through its own workflow, with no Cloudflare steps, and the plan still names `llms.txt` and `security.txt` — the part that fails without the plugin |
 | `geo-tool-disagreement` | A GeoDaddy finding that the references show to be wrong is flagged, not repeated (rule 3) |
 
 GeoDaddy is mocked in `mocks/geodaddy/`; the real server never starts unless `--mocks off` or
