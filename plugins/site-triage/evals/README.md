@@ -9,11 +9,16 @@ below the plugin (`--eval-dir` must be a relative path inside it — checked 202
 so an installed copy can run the same cases. Nothing in it loads during normal use.
 
 ```bash
-claude plugin eval plugins/site-triage --scaffold --no-publish --max-cost-usd 6
+claude plugin eval plugins/site-triage --scaffold --no-publish --max-cost-usd 20
 ```
 
-`--scaffold` is needed by `brand-only`, which writes a small fixture site with
-`brand-only/fixture.sh`. Without it that case runs in an empty folder and fails.
+`--scaffold` is needed by `brand-only`, `pages-host-launch`, `vercel-host-kept` and `no-host-asks`,
+which write a small fixture site with their `fixture.sh`. Without it those cases run in an empty
+folder and fail.
+
+The command runs each case three times with the plugin and three times without it (the default
+with-without ablation), 78 runs in all; the 2026-11-26 full run cost 12.51 USD, so a lower
+`--max-cost-usd` stops it part-way.
 
 | Case | Asserts |
 |---|---|
@@ -23,6 +28,8 @@ claude plugin eval plugins/site-triage --scaffold --no-publish --max-cost-usd 6
 | `no-fabricated-verdicts` | With no network, no check is reported as passed or failed (rule 2) |
 | `healthy-redirects` | Slashless twins that 308 once are read as expected, not as defects (rule 1) |
 | `brand-only` | Mode C reports brand findings only (scan steps 1-3) |
+| `vercel-host-kept` | A site that deploys to Vercel keeps Vercel: no move to Cloudflare, and no missing `wrangler` config listed as a gap |
+| `no-host-asks` | A site with no deploy config and no named host is asked where it will be hosted before any host-specific deploy steps |
 | `pages-host-launch` | A single-page site on GitHub Pages is launched through its own workflow, with no Cloudflare steps, and the plan still names `llms.txt` and `security.txt` — the part that fails without the plugin |
 | `geo-tool-disagreement` | A GeoDaddy finding that the references show to be wrong is flagged, not repeated (rule 3) |
 
@@ -36,7 +43,14 @@ re-transcribe it when the pinned version in `.mcp.json` changes.
 On a machine where the skill is also installed in a skills directory, the no-plugin baseline arm
 still sees it, so read the with-plugin scores and ignore the delta there.
 
-Last full run (2026-10-24, Claude Code 2.1.310, three runs per case, `--ablation none`): 20 of 21
+Last full run (2026-11-26, Claude Code 2.1.332, three runs per case, with-without ablation,
+12.51 USD): all 13 cases passed 3 of 3 runs with the plugin. Without it, `healthy-redirects`,
+`no-trigger` and `no-trigger-tr` also pass 3 of 3 and `no-fabricated-verdicts` 2 of 3. The other
+cases fail there on `skill-fired` or on a plugin reference or tool going unused; behaviour graders
+that fail without the plugin are `plans-discoverability-files` (3 of 3 runs), `flags-gptbot-claim`
+(2 of 3) and `host-left-open` (1 of 3).
+
+Earlier full run (2026-10-24, Claude Code 2.1.310, three runs per case, `--ablation none`): 20 of 21
 runs passed, 3.63 USD. `trigger-gsc-tr` did not fire the skill in one of three runs. That is a
 triggering result to act on in the skill's description, not a grader to loosen. With the default
 `--threshold 1.0` one such run makes the command exit 1.
@@ -49,6 +63,6 @@ On 2026-10-25 the labels moved out of the description into a Turkish column in
 `16-search-console.md` (Claude Code 2.1.310, three runs per case): the four trigger cases scored 12 of
 12, the Turkish ones included, and the negatives 6 of 6.
 
-Each run costs money: the 2026-10-24 full run averaged about 0.17 USD per run (3.63 USD for 21
-runs) with the default model.
+Each run costs money: the 2026-11-26 full run averaged about 0.16 USD per run (12.51 USD for 78
+runs, judges included) with the default model.
 Results land in `evals/results/`, which is gitignored.
