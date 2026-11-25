@@ -20,6 +20,8 @@ releases each bundled several pull requests or direct commits, and no single num
 ### Changed
 
 - The scan names the host — Cloudflare, Vercel, Netlify or GitHub Pages — from its config, or in Mode B from the live response headers. A site keeps the host it has, with fixes in that host's own config; a site with no host is asked where it will be hosted, and Cloudflare deployment is planned only when the user picks it (#26)
+- With no host chosen, the deploy plan stays host-neutral until the user picks one; replies had listed Cloudflare-only steps (`wrangler`, Redirect Rules) ahead of the choice (#31)
+- `vercel-host-kept` eval: saying Cloudflare config is not needed passes; judges had read it as a missing-config gap (#31)
 - The Cloudflare pitfalls in `SKILL.md` (`_redirects` loop, `not_found_handling`, dashboard upload, `run_worker_first`, `wrangler login` scope, AI bot policy) apply only to a site on Cloudflare; the Mode A scaffold's file tree and deploy checklist no longer assume Cloudflare (#28)
 - `brand-only` eval: the judge separates a short note on what was left out from non-brand work proposed for this pass; three judges had split on the same compliant replies (#28)
 
