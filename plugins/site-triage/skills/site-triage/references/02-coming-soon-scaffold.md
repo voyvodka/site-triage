@@ -26,10 +26,12 @@ deploy/
 ├── sitemap.xml
 ├── llms.txt
 ├── humans.txt
-├── _headers               ← CF security + cache
+├── _headers               ← security + cache headers, Cloudflare or Netlify only
 └── .well-known/
     └── security.txt
 ```
+
+The tree is host-neutral apart from `_headers`. Deploy keeps the host the site already has, or the one the user picked (`SKILL.md`, Hosts); on another host, set headers in that host's own config and leave `_headers` out.
 
 `_headers` is valid for Cloudflare Workers static assets — place it in the assets directory, up to
 100 rules, 2,000 characters per line. It applies to static asset responses only, **not** to
@@ -185,11 +187,11 @@ usual casualty.
 
 ## Deploy checklist
 
-Before shipping to CF Workers:
+Before shipping:
 1. Copy `coming-soon.html` → `deploy/index.html`
 2. Generate `deploy/og-cover.png` via satori (see `07-og-satori.md`) and export
    `deploy/apple-touch-icon.png` at 180×180, opaque, plus `deploy/favicon.ico`
 3. Write `deploy/robots.txt`, `deploy/sitemap.xml`, `deploy/llms.txt`, `deploy/humans.txt`,
-   `deploy/_headers`, `deploy/.well-known/security.txt` (see `03-discoverability-classic.md` +
+   `deploy/_headers` (Cloudflare or Netlify only), `deploy/.well-known/security.txt` (see `03-discoverability-classic.md` +
    `06-agent-ready.md`)
-4. `wrangler deploy` (see `08-cloudflare-deploy.md`)
+4. Deploy through the site's host: its existing pipeline, or on Cloudflare Workers `wrangler deploy` (see `08-cloudflare-deploy.md`)
