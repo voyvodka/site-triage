@@ -16,7 +16,7 @@ file points at it rather than restating it.
 
 1. https://search.google.com/search-console → **Add property** → **Domain** type (covers all subdomains + protocols)
 2. Verify via TXT record:
-   - CF Dashboard → DNS → Add TXT
+   - In the DNS provider's dashboard → add a TXT record
    - Name: `@`
    - Content: paste `google-site-verification=...` string from GSC
    - Save → back to GSC → **Verify**

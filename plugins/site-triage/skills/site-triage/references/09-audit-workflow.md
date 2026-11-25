@@ -235,7 +235,7 @@ A site that sends no signed bot traffic has nothing to publish there.
 Get approval per group before writing. Apply changes.
 
 **Approval to apply is not approval to commit, deploy, or publish.** Ask separately, and name the
-operation, before any of: `git commit` or `git push`, a `wrangler deploy`, a cache purge, a sitemap
+operation, before any of: `git commit` or `git push`, a deploy (`wrangler deploy`, `vercel deploy`, a push that triggers one), a cache purge, a sitemap
 submission, or a DNS change. These leave the working tree and are not all reversible — a purge and a
 submitted sitemap cannot be taken back at all. Offer the diff and let the user run the commit
 themselves if they prefer; that is often the right answer for a repository this skill does not own.
@@ -257,7 +257,7 @@ prints `OK` — a described fix is not evidence of one.
 
 Give user:
 1. **Summary** — what was fixed, what remains, deferred items
-2. **Manual action list** — zone settings they need to change (SSL mode, Bot Fight, etc.)
+2. **Manual action list** — host, DNS or dashboard settings they need to change (on Cloudflare: SSL mode, Bot Fight Mode)
 3. **Indexing acceleration** — if meta or schema changed, suggest GSC "Request Indexing" (see `12-indexing.md`)
 4. **Expected propagation** — quote only Google's published ranges, with the source: crawling
    after a request *"can take anywhere from a few days to a few weeks"*; a fixed duplicate may stay

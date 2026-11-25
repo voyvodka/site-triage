@@ -31,7 +31,7 @@ deploy/
     └── security.txt
 ```
 
-The tree is host-neutral apart from `_headers`. Deploy keeps the host the site already has, or the one the user picked (`SKILL.md`, Hosts); on another host, set headers in that host's own config and leave `_headers` out.
+The tree is host-neutral apart from `_headers`. Deploy keeps the host the site already has, or the one the user picked (`SKILL.md`, Hosts); on another host, set headers in that host's own config and leave `_headers` out. GitHub Pages documents no way to set headers (`14-diagnostic-checks.md` C8): say they are not configurable there instead of planning them.
 
 `_headers` is valid for Cloudflare Workers static assets — place it in the assets directory, up to
 100 rules, 2,000 characters per line. It applies to static asset responses only, **not** to
