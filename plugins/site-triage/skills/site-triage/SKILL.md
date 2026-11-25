@@ -58,10 +58,16 @@ runs all eight, because step 8 probes a live site.
 2. **Shape** — single-page (coming-soon, landing) vs multi-page (docs, blog, marketing subpages). Count routes in `src/pages/` or equivalent.
 3. **Brand assets** — `/brand/`, `public/favicon.svg`, logotypes, color tokens in CSS / Tailwind config.
 4. **Discoverability files** — `robots.txt`, `sitemap.xml`, `llms.txt`, JSON-LD `<script type="application/ld+json">`, `.well-known/security.txt`, `humans.txt`.
-5. **Deploy state** — `wrangler.jsonc` / `wrangler.toml`, `_headers`, `_redirects`, any CF Workers / Pages binding.
+5. **Host and deploy state** — which host serves the site, read from its config: `wrangler.jsonc` / `wrangler.toml` (Cloudflare), `vercel.json` / `vercel.toml` / `vercel.ts` (Vercel), `netlify.toml` (Netlify), a workflow using `actions/deploy-pages` or a branch publishing source (GitHub Pages). `_headers` and `_redirects` are read by both Cloudflare and Netlify, so they do not name the host alone. In Mode B the live response headers settle it: `server: cloudflare` with `cf-ray`, `server: Vercel` with `x-vercel-id`, `server: Netlify` with `x-nf-request-id`, `server: GitHub.com` (verified 2026-11-25 against each vendor's own site, and the config names against [Vercel](https://vercel.com/docs/project-configuration), [Netlify](https://docs.netlify.com/build/configure-builds/file-based-configuration/) and [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) docs). Record the host; **Hosts** below says what follows.
 6. **Meta tags per route** — canonical, og:*, twitter:*, favicon.ico + favicon.svg, apple-touch-icon, application-name. Centralized (BaseLayout) vs per-page. A `mask-icon` is not a gap — `01-brand-application.md` drops it.
 7. **Repo hardening** — `.github/dependabot.yml` or `renovate.json`, `.github/workflows/*audit*.yml`, lockfile, branch protection (ask user for GitHub settings).
 8. **(Mode B only) Live probe** — if URL provided, run §audit-workflow Step 1 (HTTP + meta) and Step 1b (agent-ready signals), then **run the checks in `14-diagnostic-checks.md`**. Do not report a finding about live behaviour that no check produced, and do not report a symptom without naming the file or dashboard setting that causes it.
+
+### Hosts
+
+**The site keeps the host it already has.** This skill's deploy guidance (`08-cloudflare-deploy.md`) covers Cloudflare Workers only. On Vercel, Netlify, GitHub Pages or any other host, header, redirect and domain fixes go into that host's own config, checked against its current docs, and the deploy pipeline stays as it is — a missing `wrangler` file is not a gap there. Propose moving a site to Cloudflare only when the user asks for it.
+
+**With no host yet** (Mode A), ask where the site will be hosted before planning deployment, and name Cloudflare Workers as one option among others. The deploy phase loads `08-cloudflare-deploy.md` only when the user picks Cloudflare.
 
 Then write a **severity-ranked gap report**:
 
@@ -88,7 +94,7 @@ Each capability lives in a separate reference file. Read the one matching the cu
 | Multi-page SEO — per-page canonical / og / Breadcrumb schema / Article schema | [references/05-multipage-seo.md](references/05-multipage-seo.md) | When site has multiple routes (docs, blog, marketing with subpages) |
 | Agent-ready discoverability (2025 Cloudflare standards) — Link headers, Content-Signal, Markdown-for-Agents, Web Bot Auth | [references/06-agent-ready.md](references/06-agent-ready.md) | When user mentions `isitagentready.com`, agentic web, MCP-facing sites, or wants programmatic agent discovery |
 | OG image generation (1200×630 PNG via satori + resvg) | [references/07-og-satori.md](references/07-og-satori.md) | When generating or updating social cards |
-| Cloudflare Workers deployment (wrangler config, worker script, _headers, zone settings) | [references/08-cloudflare-deploy.md](references/08-cloudflare-deploy.md) | Mode A deploy phase, or Mode B when changing deploy infrastructure |
+| Cloudflare Workers deployment (wrangler config, worker script, _headers, zone settings) | [references/08-cloudflare-deploy.md](references/08-cloudflare-deploy.md) | Only when the site is on Cloudflare or the user chose it — Mode A deploy phase, or Mode B deploy changes |
 | Mode B existing-site audit workflow (live probe commands, gap report synthesis) | [references/09-audit-workflow.md](references/09-audit-workflow.md) | Mode B always |
 | **Diagnostic checks — runnable, one verdict line each; traces "not indexed" reasons to a file or a dashboard setting** | [references/14-diagnostic-checks.md](references/14-diagnostic-checks.md) | **Mode B always, before writing any gap report about a live site.** Also whenever a claim needs proving rather than asserting |
 | Brand search / logo-in-SERP troubleshooting | [references/10-brand-serp.md](references/10-brand-serp.md) | When user asks "my logo doesn't show in Google" or "my brand isn't ranking" |

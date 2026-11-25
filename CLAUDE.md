@@ -57,7 +57,8 @@ follow one of them.
   start-validation endpoint; do not write code that pretends otherwise.
 - **Never branch on `coverageState` text.** It is free-form and localized — the same state reads
   differently in Turkish and English. Branch on `pageFetchState`, `indexingState`, `googleCanonical`.
-- **Audit is platform-agnostic; deploy and scaffolding are Cloudflare-only.** Diagnosis runs over
+- **Audit is platform-agnostic; deploy and scaffolding are Cloudflare-only, and a site keeps the host
+  it has.** Cloudflare is proposed only when the user asks or picks it. Diagnosis runs over
   live HTTP and must not assume the origin.
 - **A written rule is not a check.** Anything the plugin claims to catch needs a runnable command
   that produces a one-line verdict. This gap is the reason the project exists.

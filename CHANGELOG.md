@@ -10,6 +10,14 @@ releases each bundled several pull requests or direct commits, and no single num
 
 ## [Unreleased]
 
+### Added
+
+- Evals `vercel-host-kept` and `no-host-asks`: a Vercel site keeps its host, and a site with no host is asked where it will be hosted
+
+### Changed
+
+- The scan names the host — Cloudflare, Vercel, Netlify or GitHub Pages — from its config, or in Mode B from the live response headers. A site keeps the host it has, with fixes in that host's own config; a site with no host is asked where it will be hosted, and Cloudflare deployment is planned only when the user picks it
+
 ### Fixed
 
 - `11-validation-toolkit.md`: the DNS cache flush before the browser check gives the Linux and Windows commands beside the macOS one
