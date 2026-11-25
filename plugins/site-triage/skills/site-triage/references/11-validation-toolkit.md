@@ -264,7 +264,11 @@ After every deploy, run in this order:
 2. **Visual browser check** — flush DNS cache first:
    ```bash
    sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder   # macOS
+   resolvectl flush-caches                                          # Linux, systemd-resolved
+   ipconfig /flushdns                                               # Windows
    ```
+   (Linux and Windows lines verified 2026-11-25 — [`resolvectl(1)`](https://www.freedesktop.org/software/systemd/man/latest/resolvectl.html),
+   Microsoft's [`ipconfig` reference](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ipconfig))
 3. **11.2 External validators** — Rich Results + Schema + OG preview at minimum
 4. **11.3 Lighthouse** — desktop (`--preset=desktop`) and mobile (no preset), target 95+ / 90+
 5. **Indexing acceleration** — if content changed meaningfully, request GSC reindexing (see
