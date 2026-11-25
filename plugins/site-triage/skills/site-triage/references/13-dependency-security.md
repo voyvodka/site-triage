@@ -117,11 +117,6 @@ Install Renovate GitHub App, then `renovate.json`:
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
-    },
-    {
-      "matchPackageNames": ["wrangler"],
-      "schedule": ["at any time"],
-      "labels": ["wrangler"]
     }
   ],
   "vulnerabilityAlerts": {
