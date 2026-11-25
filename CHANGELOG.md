@@ -10,6 +10,8 @@ releases each bundled several pull requests or direct commits, and no single num
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-26
+
 ### Added
 
 - Evals `vercel-host-kept` and `no-host-asks`: a Vercel site keeps its host, and a site with no host is asked where it will be hosted (#26)
@@ -293,7 +295,8 @@ releases each bundled several pull requests or direct commits, and no single num
   `-05` until 2027-02-20, `vocab` is at `-07`, and `Content-Usage` stays intent-only.
 - `$schema` added to `plugin.json`, pointing at the SchemaStore entry.
 
-[Unreleased]: https://github.com/voyvodka/site-triage/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/voyvodka/site-triage/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/voyvodka/site-triage/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/voyvodka/site-triage/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/voyvodka/site-triage/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/voyvodka/site-triage/compare/v1.1.0...v1.1.1
