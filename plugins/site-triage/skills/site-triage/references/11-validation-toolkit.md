@@ -53,7 +53,7 @@ Expected:
   did not answer: not checked, not a pass
 - `/random-unknown-path` — **200** on an SPA (index fallback), **404** on a static or SSR site. Decide
   which shape the site is *before* reading this line, otherwise it proves nothing either way.
-- `Link:` header present with the relations the site declares in `_headers` (C8 checks each one)
+- `Link:` header present with the relations the site declares in its host's header config (C8 checks each one)
 - `Content-Signal:` present in robots.txt **only if the site chose to state it** — absence is not a
   finding (`06-agent-ready.md` priority matrix). If it appears and the repo never declared it, a
   CDN is injecting it — `14-diagnostic-checks.md` C2
