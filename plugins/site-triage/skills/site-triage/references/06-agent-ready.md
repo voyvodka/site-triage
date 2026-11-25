@@ -77,6 +77,8 @@ route's own file.
   Link: </llms.txt>; rel="describedby", </sitemap.xml>; rel="sitemap", </.well-known/security.txt>; rel="security-txt"
 ```
 
+On Vercel or Netlify the same header goes in that host's own header config (`14-diagnostic-checks.md` C8 lists where).
+
 **Express / Node middleware**:
 ```ts
 app.use((_req, res, next) => {

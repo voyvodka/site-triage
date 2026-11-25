@@ -241,7 +241,7 @@ Last update: YYYY/MM/DD
 Doctype: HTML5
 Language: English
 Status: production
-Source: static (Cloudflare Workers)
+Source: static (HOST)
 
 /* STACK */
 App: PRIMARY_STACK
