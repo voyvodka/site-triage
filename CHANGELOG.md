@@ -20,6 +20,7 @@ releases each bundled several pull requests or direct commits, and no single num
 
 ### Fixed
 
+- When a check cannot run (no network, no URL), the answer says so and gives the check's command from `14-diagnostic-checks.md`; the skill had not said what to do then, and some replies gave neither verdict nor command
 - `11-validation-toolkit.md`: the DNS cache flush before the browser check gives the Linux and Windows commands beside the macOS one
 
 ## [1.2.0] - 2026-11-21
