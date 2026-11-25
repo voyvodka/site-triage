@@ -109,8 +109,9 @@ sounding certain.
 
 ## Limitations
 
-- **Cloudflare only, for deployment.** Diagnosis is platform-agnostic and runs over live HTTP, but
-  scaffolding and deploys target Cloudflare Workers. Knowing one platform properly beat knowing
+- **Cloudflare only, for deployment.** Diagnosis is platform-agnostic and runs over live HTTP, and
+  the scaffold is host-neutral apart from `_headers`, but the deploy guidance covers Cloudflare
+  Workers only. Knowing one platform properly beat knowing
   four halfway. A site already on Vercel, Netlify, GitHub Pages or elsewhere stays there: fixes go
   into that host's own config, and a new site is asked where it will be hosted rather than sent to
   Cloudflare.
