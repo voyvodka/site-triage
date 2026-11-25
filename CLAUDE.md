@@ -58,8 +58,8 @@ follow one of them.
 - **Never branch on `coverageState` text.** It is free-form and localized — the same state reads
   differently in Turkish and English. Branch on `pageFetchState`, `indexingState`, `googleCanonical`.
 - **Audit is platform-agnostic and scaffolding host-neutral apart from `_headers`; only deploy is
-  Cloudflare-only, and a site keeps the host it has.** Cloudflare is proposed only when the user asks or picks it. Diagnosis runs over
-  live HTTP and must not assume the origin.
+  Cloudflare-only, and a site keeps the host it has.** Cloudflare is proposed only when the user
+  asks or picks it. Diagnosis runs over live HTTP and must not assume the origin.
 - **A written rule is not a check.** Anything the plugin claims to catch needs a runnable command
   that produces a one-line verdict. This gap is the reason the project exists.
 - **Nothing under `plugins/` names a real person, site, repository, or machine.** This ships
