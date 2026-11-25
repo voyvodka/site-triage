@@ -26,7 +26,7 @@ releases each bundled several pull requests or direct commits, and no single num
 ### Fixed
 
 - Header checks no longer assume Cloudflare: `14-diagnostic-checks.md` C8, `11-validation-toolkit.md`, `09-audit-workflow.md` and `06-agent-ready.md` name each host's header config, and the humans.txt template no longer says the site runs on Cloudflare Workers. `pages-host-launch` also checks that the plan names `llms.txt` and `security.txt`, which runs without the plugin do not (#30)
-- The remaining host-specific lines in the validation toolkit, audit workflow, brand-SERP, indexing and dependency references name Cloudflare only as one host; the scaffold says GitHub Pages headers are not configurable, and C8 lists `vercel.toml` (#32)
+- The remaining host-specific lines in the validation toolkit, audit workflow, brand-SERP, indexing and dependency references name Cloudflare only as one host; the scaffold says GitHub Pages headers are not configurable, and C8 lists `vercel.toml` (#32). C4's two-hop note and the audit's `_redirects` line no longer assume Cloudflare (#33)
 - When a check cannot run (no network, no URL), the answer says so and gives the check's command from `14-diagnostic-checks.md`; the skill had not said what to do then, and some replies gave neither verdict nor command (#27)
 - `11-validation-toolkit.md`: the DNS cache flush before the browser check gives the Linux and Windows commands beside the macOS one (#25)
 
