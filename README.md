@@ -111,7 +111,9 @@ sounding certain.
 
 - **Cloudflare only, for deployment.** Diagnosis is platform-agnostic and runs over live HTTP, but
   scaffolding and deploys target Cloudflare Workers. Knowing one platform properly beat knowing
-  four halfway.
+  four halfway. A site already on Vercel, Netlify, GitHub Pages or elsewhere stays there: fixes go
+  into that host's own config, and a new site is asked where it will be hosted rather than sent to
+  Cloudflare.
 - **No content, no analytics, no consent flows.** It builds the technical scaffolding; the words
   and the tracking are someone else's job.
 - **No deep application SEO** — hreflang for multi-region sites, e-commerce product feeds, and
