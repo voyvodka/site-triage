@@ -24,6 +24,7 @@ releases each bundled several pull requests or direct commits, and no single num
 - `vercel-host-kept` eval: saying Cloudflare config is not needed passes; judges had read it as a missing-config gap (#31)
 - The Cloudflare pitfalls in `SKILL.md` (`_redirects` loop, `not_found_handling`, dashboard upload, `run_worker_first`, `wrangler login` scope, AI bot policy) apply only to a site on Cloudflare; the Mode A scaffold's file tree and deploy checklist no longer assume Cloudflare (#28)
 - `brand-only` eval: the judge separates a short note on what was left out from non-brand work proposed for this pass; three judges had split on the same compliant replies (#28)
+- The eval README lists every case, names the four cases that need `--scaffold`, and sets the example cost cap for the default with-without run, which costs about 12.5 USD (#34)
 
 ### Fixed
 
